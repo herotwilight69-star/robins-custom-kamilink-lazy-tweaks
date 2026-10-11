@@ -1571,8 +1571,8 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             "Disables all background music. Mostly for recording footage while keeping a the HUD.");
         addOption("Always Show Gear As Wolf", getSettings().game.wolfGear,
             "Makes the sword and shield always visible on Wolf Link.");
-        addOption("Invisible Midna", getSettings().game.invisibleMidna,
-            "Hides Midna on Wolf Link's back.");
+        addOption("Shadow/Transluscent Midna", getSettings().game.shadowMidna,
+            "Makes Midna appear in her shadow form on Wolf Link's back. Causes less issues than the old Invisible Midna setting.");
         leftPane.register_control(
             leftPane.add_select_button({
                 .key = "Always Glowing Light Sword",

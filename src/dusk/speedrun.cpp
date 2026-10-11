@@ -65,7 +65,7 @@ void resetForSpeedrunMode() {
     getSettings().game.autoSave.setSpeedrunValue(false);
     getSettings().game.sunsSong.setSpeedrunValue(false);
     getSettings().game.wolfGear.setSpeedrunValue(false);
-    getSettings().game.invisibleMidna.setSpeedrunValue(false);
+    getSettings().game.shadowMidna.setSpeedrunValue(false);
     getSettings().game.alwaysLightSword.setSpeedrunValue(LightSwordMode::OFF);
 
     getSettings().game.infiniteHearts.setSpeedrunValue(false);

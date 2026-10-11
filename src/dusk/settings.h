@@ -273,7 +273,7 @@ struct UserSettings {
         ConfigVar<bool> enableDiscordPresence;
         ConfigVar<MenuScaling> menuScalingMode;
         ConfigVar<bool> wolfGear;
-        ConfigVar<bool> invisibleMidna;
+        ConfigVar<bool> shadowMidna;
         ConfigVar<LightSwordMode> alwaysLightSword;
         ConfigVar<bool> swordTrail;
         ConfigVar<bool> suppressButtonPrompts;
