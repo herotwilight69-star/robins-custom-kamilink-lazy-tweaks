@@ -236,7 +236,7 @@ daE_ST_HIO_c::daE_ST_HIO_c() {
     pl_recognize_dist = 1200.0f;
     combat_start_dist = 200.0f;
     time_before_attack = 0;
-    down_time = 80;
+    down_time = 60;
     field_0x18 = 1.0f;
     field_0x1c = -0.5f;
     field_0x20 = -1.0f;
@@ -800,7 +800,7 @@ static void e_st_pl_search(e_st_class* i_this) {
             pos_delta = a_this->home.pos - a_this->current.pos;
 
             if (pl_check(i_this, AREG_F(1) + 120.0f)) {
-                anm_init(i_this, BCK_ST_ATTACK02, 3.0f, J3DFrameCtrl::EMode_NONE, 2.0f);
+                anm_init(i_this, BCK_ST_ATTACK02, 3.0f, J3DFrameCtrl::EMode_NONE, 1.5f);
                 i_this->mActionPhase = PL_SEARCH_ATTACK02;
                 i_this->mSound.startCreatureSound(Z2SE_EN_ST_ATTACK, 0, -1);
             } else if (i_this->arg1 == 0) {
@@ -1787,7 +1787,7 @@ static void e_st_g_normal(e_st_class* i_this) {
         case PHASE_INIT:
             i_this->mActionPhase = G_NORMAL_PHASE_WAIT;
             anm_init(i_this, BCK_ST_WAIT, 10.0f, J3DFrameCtrl::EMode_LOOP, 1.0f);
-            i_this->mTimers[0] = cM_rndF(100.0f) + 50.0f;
+            i_this->mTimers[0] = cM_rndF(50.0f) + 25.0f;
             i_this->mAngleFromPlayer = a_this->current.angle.y;
             break;
 
@@ -1807,7 +1807,7 @@ static void e_st_g_normal(e_st_class* i_this) {
             if (angle_delta < 0x800 && angle_delta > -0x800) {
                 anm_init(i_this, BCK_ST_MOVE, 5.0f, J3DFrameCtrl::EMode_LOOP, 1.0f);
                 i_this->mActionPhase = G_NORMAL_PHASE_MOVE;
-                i_this->mTimers[0] = cM_rndF(100.0f) + 50.0f;
+                i_this->mTimers[0] = cM_rndF(50.0f) + 25.0f;
             } else if (i_this->mAnm != BCK_ST_TURN) {
                 anm_init(i_this, BCK_ST_TURN, 5.0f, J3DFrameCtrl::EMode_LOOP, 1.0f);
             }
@@ -1843,6 +1843,7 @@ static s8 e_st_g_fight(e_st_class* i_this) {
     s8 isPreparingAttack = false;
     s8 rv = false;
     f32 combat_start_dist = l_HIO.combat_start_dist;
+    f32 rnd = cM_rndF(1.0f);
     if (small) {
         combat_start_dist *= BREG_F(11) + 0.58f;
     }
@@ -1867,18 +1868,20 @@ static s8 e_st_g_fight(e_st_class* i_this) {
             rv = true;
             i_this->mAngleFromPlayer = fopAcM_searchPlayerAngleY(a_this);
 
-            if (i_this->mTimers[0] == 0) {
-                anm_init(i_this, BCK_ST_ATTACKA, 5.0f, J3DFrameCtrl::EMode_NONE, 2.0f);
+            if (i_this->mTimers[0] == 0 && rnd < 0.5f) {
+                anm_init(i_this, BCK_ST_ATTACKA, 5.0f, J3DFrameCtrl::EMode_NONE, 3.0f);
                 i_this->mSound.startCreatureVoice(Z2SE_EN_ST_V_ATTACKA, -1);
                 i_this->mActionPhase = G_FIGHT_PHASE_ATTACKA;
+                isPreparingAttack = true;
             }
-
-            isPreparingAttack = true;
+            else if (i_this->mTimers[0] == 0) {
+                i_this->mActionPhase = 6;
+            }
             break;
         
         case G_FIGHT_PHASE_ATTACKA:
             if (i_this->mpModelMorf->isStop()) {
-                anm_init(i_this, BCK_ST_ATTACKB, 1.0f, J3DFrameCtrl::EMode_LOOP, 2.0f);
+                anm_init(i_this, BCK_ST_ATTACKB, 1.0f, J3DFrameCtrl::EMode_LOOP, 3.0f);
                 i_this->mSound.startCreatureVoice(Z2SE_EN_ST_V_ATTACKB, -1);
                 i_this->mActionPhase = G_FIGHT_PHASE_ATTACKB;
                 i_this->mTimers[0] = l_HIO.time_before_attack;
@@ -1889,11 +1892,13 @@ static s8 e_st_g_fight(e_st_class* i_this) {
 
         case G_FIGHT_PHASE_ATTACKB:
             if (i_this->mTimers[0] == 0) {
-                anm_init(i_this, BCK_ST_ATTACKC, 3.0f, J3DFrameCtrl::EMode_NONE, 2.0f);
+                anm_init(i_this, BCK_ST_ATTACKC, 3.0f, J3DFrameCtrl::EMode_NONE, 2.5f);
                 i_this->mSound.startCreatureVoice(Z2SE_EN_ST_V_ATTACKC, -1);
                 i_this->mActionPhase = G_FIGHT_PHASE_ATTACKC;
             }
 
+            i_this->mAtSph.SetAtAtp(2);
+            i_this->mAtSph.SetAtSpl((dCcG_At_Spl)10);
             isPreparingAttack = true;
             break;
             
@@ -1903,6 +1908,27 @@ static s8 e_st_g_fight(e_st_class* i_this) {
             }
 
             if (i_this->mpModelMorf->isStop()) {
+                isStop = true;
+            }
+            break;
+
+        case 6:
+            anm_init(i_this, BCK_ST_ATTACK02, 3.0f, J3DFrameCtrl::EMode_NONE, 1.5f);
+            i_this->mActionPhase = 7;
+            i_this->mSound.startCreatureSound(Z2SE_EN_ST_ATTACK, 0, -1);
+            i_this->mAtSph.SetAtAtp(1);
+            i_this->mAtSph.SetAtSpl((dCcG_At_Spl)0);
+            break;
+
+        case 7:
+            if (frame >= 11 && frame <= 23) {
+                i_this->field_0xb94 = 1;
+            }
+
+            if (i_this->mpModelMorf->isStop()) {
+                i_this->mTimers[0] = cM_rndF(20.0f) + 20.0f;
+                i_this->mAction = ACTION_G_NORMAL;
+                i_this->mActionPhase = PHASE_INIT;
                 isStop = true;
             }
             break;
@@ -1997,7 +2023,7 @@ static void e_st_g_s_damage(e_st_class* i_this) {
     switch (i_this->mActionPhase) {
         case PHASE_INIT:
             i_this->mActionPhase = G_S_DAMAGE_PHASE_NODAMAGE;
-            anm_init(i_this, BCK_ST_DAMAGE, 2.0f, J3DFrameCtrl::EMode_NONE, 1.0f);
+            anm_init(i_this, BCK_ST_DAMAGE, 2.0f, J3DFrameCtrl::EMode_NONE, 2.0f);
             i_this->mSound.startCreatureVoice(Z2SE_EN_ST_V_NODAMAGE, -1);
             break;
 
@@ -2167,6 +2193,7 @@ static s8 e_st_g_end(e_st_class* i_this) {
 static void damage_check_g(e_st_class* i_this) {
     fopEn_enemy_c* a_this = (fopEn_enemy_c*)&i_this->actor;
     fopAc_ac_c* player = (fopAc_ac_c*)dComIfGp_getPlayer(0);
+    f32 rnd = cM_rndF(1.0f);
 
     i_this->mStts.Move();
 
@@ -2207,19 +2234,42 @@ static void damage_check_g(e_st_class* i_this) {
                 }
             }
 
-            if (i_this->mAtInfo.mHitType == 1 && (daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_TURN_RIGHT || daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_UNK_9)) {
+            if (daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_TURN_RIGHT
+                || daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_TURN_LEFT
+                || daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_UNK_9
+                || daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_JUMP
+                || daPy_getPlayerActorClass()->checkWolf()) {
+                i_this->mAction = ACTION_G_DAMAGE;
+                a_this->speedF = KREG_F(14) + -20.0f;
+                if (daPy_getPlayerActorClass()->checkWolf()) {
+                    i_this->mInvulnerabilityTimer = 4;
+                } else {
+                    i_this->mInvulnerabilityTimer = 15;
+                }
+            } else if (daPy_getPlayerActorClass()->getCutCount() == 4 || i_this->mAtInfo.mHitStatus != 0
+                || (i_this->mAtInfo.mHitStatus != 0 && daPy_getPlayerActorClass()->checkWolf())) {
                 i_this->mAction = ACTION_G_CHANCE;
-                a_this->speedF = KREG_F(14) + -40.0f;
-                i_this->mInvulnerabilityTimer = 30;
-            } else if (daPy_getPlayerActorClass()->getCutCount() >= 4) {
-                i_this->mAction = ACTION_G_DAMAGE;
-                a_this->speedF = KREG_F(14) + -15.0f;
-                i_this->mInvulnerabilityTimer = 20;
-            } else if (daPy_getPlayerActorClass()->getCutCount() <= 1 && i_this->mAtInfo.mHitStatus == 0) {
-                i_this->mAction = ACTION_G_S_DAMAGE;
-            } else {
-                i_this->mAction = ACTION_G_DAMAGE;
+                a_this->speedF = KREG_F(14) + -10.0f;
+                i_this->mInvulnerabilityTimer = 15;
+            } else if (daPy_getPlayerActorClass()->getCutCount() == 3 && i_this->mAtInfo.mHitStatus == 0) {
+                if (rnd < 0.5f) {
+                    i_this->mAction = ACTION_G_FIGHT;
+                    i_this->mInvulnerabilityTimer = 15;
+                    a_this->speedF = KREG_F(14) + -10.0f;
+                }
+                else {
+                    i_this->mAction = ACTION_G_NORMAL;
+                    i_this->mInvulnerabilityTimer = 15;
+                    a_this->speedF = KREG_F(18) + -10.0f;
+                }
+            } else if (daPy_getPlayerActorClass()->getCutCount() == 2 && i_this->mAtInfo.mHitStatus == 0) {
+                i_this->mAction = ACTION_S_DAMAGE;
                 a_this->speedF = KREG_F(18) + -15.0f;
+                i_this->mInvulnerabilityTimer = 6;
+            } else if (daPy_getPlayerActorClass()->getCutCount() == 1 && i_this->mAtInfo.mHitStatus == 0) {
+                i_this->mAction = ACTION_G_NORMAL;
+                a_this->speedF = KREG_F(14) + -15.0f;
+                i_this->mInvulnerabilityTimer = 6;
             }
 
             i_this->mActionPhase = PHASE_INIT;
@@ -2247,6 +2297,11 @@ static void damage_check_g(e_st_class* i_this) {
         if (i_this->mAnm == BCK_ST_DAWNB) {
             anm_init(i_this, BCK_ST_DAWNC, 2.0f, J3DFrameCtrl::EMode_NONE, 1.0f);
             i_this->mSound.startCreatureVoice(Z2SE_EN_ST_V_DAWNC, -1);
+        }
+
+        if (daPy_getPlayerActorClass()->getCutCount() == 4) {
+            i_this->mAction = ACTION_G_S_DAMAGE;
+            i_this->mActionPhase = PHASE_INIT;
         }
 
         a_this->speedF = KREG_F(17) + -12.0f;
@@ -2384,6 +2439,7 @@ static void action(e_st_class* i_this) {
     fopEn_enemy_c* a_this = (fopEn_enemy_c*)&i_this->actor;
     fopAc_ac_c* player = (fopAc_ac_c*)dComIfGp_getPlayer(0);
     cXyz sp9c, spa8;
+    f32 rnd = cM_rndF(1.0f);
 
     if (i_this->arg0 == 2) {
         damage_check_g(i_this);
@@ -2399,7 +2455,6 @@ static void action(e_st_class* i_this) {
     s8 unk_flag_6 = 0;
     s8 isLinkSearch = 0;
     a_this->field_0x566 = 0;
-    i_this->mSph.SetAtSpl((dCcG_At_Spl)0);
 
     switch (i_this->mAction) {
         case ACTION_WAIT:
