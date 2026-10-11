@@ -3089,6 +3089,15 @@ static void* daMidna_searchNpc(fopAc_ac_c* i_actor, void* o_far) {
     return NULL;
 }
 
+#if TARGET_PC
+// True when FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE is being forced by the Shadow Midna setting
+// rather than by an actual demo
+bool daMidna_c::checkShadowMidnaSettingForce() const {
+    return dusk::getSettings().game.shadowMidna && daAlink_getAlinkActorClass()->checkWolf()
+        && mDemoType == 0 && !checkMidnaTired() && checkShadowModelDrawDemoForce();
+}
+#endif
+
 void daMidna_c::setMidnaNoDrawFlg() {
 #if TARGET_PC
     daAlink_c* link = daAlink_getAlinkActorClass();

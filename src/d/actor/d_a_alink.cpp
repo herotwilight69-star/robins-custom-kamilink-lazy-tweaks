@@ -19470,6 +19470,14 @@ int daAlink_c::moveShadowScaleLight() {
 
 void daAlink_c::shadowDraw() {
     daMidna_c* midna = getMidnaActor();
+#if TARGET_PC
+    // Shadow Midna setting reuses the demo force flag, but shouldn't hide Wolf Link's shadow
+    if (midna != NULL && midna->checkShadowMidnaSettingForce()) {
+        if (midna->checkShadowModelDrawSmode() && (field_0x2ff4 >= 0x3FF0 || !checkMidnaRide())) {
+            return;
+        }
+    } else
+#endif
     if (midna != NULL && ((midna->checkShadowModelDraw() && (field_0x2ff4 >= 0x3FF0 || !checkMidnaRide())) || midna->checkShadowModelDrawDemoForce())) {
         return;
     }

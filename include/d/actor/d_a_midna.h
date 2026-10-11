@@ -315,7 +315,10 @@ public:
     BOOL checkWolfNoPos() const { return checkStateFlg0(FLG0_WOLF_NO_POS); }
     int checkMetamorphoseEnable() { return (this->*mpFunc)(); }
     u32 checkShadowModelDrawDemoForce() const { return checkStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE); }
-    
+#if TARGET_PC
+    bool checkShadowMidnaSettingForce() const;
+#endif
+
     void setForceNeckAimPos(const cXyz& i_pos) {
         onStateFlg0(FLG0_FORCE_NECK_AIM);
         mForceNeckAimPos = i_pos;
