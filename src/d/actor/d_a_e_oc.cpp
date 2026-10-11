@@ -777,11 +777,11 @@ void daE_OC_c::damage_check() {
     }
 
     if (daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_TURN_RIGHT || daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_TURN_LEFT) {
-        my_val = 3;
+        my_val = 7;
         setActionMode(E_OC_ACTION_DAMAGE, my_val);
     }
 
-    if (my_val >= 5) {
+    if (my_val >= 5 && my_val != 7) {
         setActionMode(E_OC_ACTION_BIG_DAMAGE, my_val - 5);
         offTgSph();
     } else {
@@ -1589,6 +1589,16 @@ void daE_OC_c::executeDamage() {
                 speedF = 20.0f;
             }
             onHeadLockFlg();
+            break;
+        case 7: // stun without the helm splitter flag
+            setBck(0x8, 0, 0.0f, 1.0f);
+            mSound.startCreatureVoice(Z2SE_EN_OC_V_DAMAGE, -1);
+            mOcState = 5;
+            if (s16(cLib_distanceAngleS(shape_angle.y, fopAcM_searchPlayerAngleY(this))) < 0x1000) {
+                speedF = -20.0f;
+            } else {
+                speedF = 20.0f;
+            }
             break;
         case 4:
             setBck(0xf, 0, 0.0f, 1.0f);
