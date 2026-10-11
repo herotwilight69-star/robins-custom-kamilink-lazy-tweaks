@@ -3095,7 +3095,12 @@ void daMidna_c::setMidnaNoDrawFlg() {
     if (dusk::getSettings().game.shadowMidna && link->checkWolf()
         && mDemoType == 0 && !checkMidnaTired()) {
         onStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE);
-        return;
+    }
+    if (!dusk::getSettings().game.shadowMidna && link->checkWolf()
+        && mDemoType == 0 && !checkMidnaTired()) {
+        if (checkStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE)) {
+            offStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE);
+        }
     }
 #endif
     if (
