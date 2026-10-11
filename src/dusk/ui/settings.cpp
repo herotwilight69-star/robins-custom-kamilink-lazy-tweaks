@@ -1524,6 +1524,11 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                 .key = "Crouch Shielding",
                 .helpText = "Enables crouch shielding and crouch attacks a la N64 Zelda games.",
             });
+        config_bool_select(leftPane, rightPane, getSettings().game.enableManualShield,
+            {
+                .key = "Manual Shielding",
+                .helpText = "Disables automatic shielding on target lock. Required for some new mechanics (like Deflect) to work properly or at all.",
+            });
         config_bool_select(leftPane, rightPane, getSettings().game.dodgeCancel,
             {
                 .key = "Attack Dodge Cancel",

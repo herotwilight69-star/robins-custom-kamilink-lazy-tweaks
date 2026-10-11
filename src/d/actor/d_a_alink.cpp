@@ -18347,7 +18347,7 @@ int daAlink_c::execute() {
         // Don't tick down mSkillCooldown while the player is guarding
         if (mSkillCooldown != 0) {
             if (dusk::getSettings().game.shieldUsesMeter) {
-                if (!mDoCPd_c::getHoldLockR(PAD_1)) {
+                if (!mDoCPd_c::getHoldLockR(PAD_1) || !dusk::getSettings().game.enableManualShield) {
                     mSkillCooldown--;
                 }
             }
@@ -18459,7 +18459,7 @@ int daAlink_c::execute() {
 
             // Dodge cancel & targeted/shielded roll tree
             int direction = getCutDirection();
-            if (checkNoResetFlg2(FLG2_UNK_8000000) || (dusk::getSettings().game.dodgeCancel
+            if ((checkNoResetFlg2(FLG2_UNK_8000000) && dusk::getSettings().game.enableManualShield) || (dusk::getSettings().game.dodgeCancel
                 && mComboCutCount != 0 && mComboCutCount != 4 && (mDoCPd_c::getHoldLockR(PAD_1) || mDoCPd_c::getTrigR(PAD_1)))) {
                 if (mDoCPd_c::getTrigA(PAD_1)) {
                     if (direction == DIR_LEFT) {

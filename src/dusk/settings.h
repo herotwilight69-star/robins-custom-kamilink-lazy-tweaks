@@ -257,6 +257,7 @@ struct UserSettings {
         ConfigVar<bool> dodgeCancel;
         ConfigVar<bool> progressiveCombos;
         ConfigVar<bool> enableCrouchShield;
+        ConfigVar<bool> enableManualShield;
 
         // Preferences
         ConfigVar<bool> enableMirrorMode;

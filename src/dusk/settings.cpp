@@ -80,6 +80,7 @@ UserSettings g_userSettings = {
         .dodgeCancel {"game.dodgeCancel", false},
         .progressiveCombos {"game.progressiveCombos", false},
         .enableCrouchShield {"game.enableCrouchShield", false},
+        .enableManualShield {"game.enableManualShield", false},
 
         // Preferences
         .enableMirrorMode {"game.enableMirrorMode", false},
@@ -347,6 +348,7 @@ void registerSettings() {
     Register(g_userSettings.game.dodgeCancel);
     Register(g_userSettings.game.progressiveCombos);
     Register(g_userSettings.game.enableCrouchShield);
+    Register(g_userSettings.game.enableManualShield);
     Register(g_userSettings.game.enableMirrorMode);
     Register(g_userSettings.game.invertCameraXAxis);
     Register(g_userSettings.game.invertCameraYAxis);
