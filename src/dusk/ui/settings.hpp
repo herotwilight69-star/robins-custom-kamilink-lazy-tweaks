@@ -42,6 +42,7 @@ public:
         s.game.dodgeCancel.setValue(true);
         s.game.progressiveCombos.setValue(true);
         s.game.enableCrouchShield.setValue(true);
+        s.game.enableManualShield.setValue(true);
     }
     void applyPresetDeathwish() {
         auto& s = getSettings();
@@ -76,6 +77,7 @@ public:
         s.game.dodgeCancel.setValue(true);
         s.game.progressiveCombos.setValue(true);
         s.game.enableCrouchShield.setValue(true);
+        s.game.enableManualShield.setValue(true);
     }
     void applyPresetVanillaPlus() {
         auto& s = getSettings();
@@ -108,6 +110,7 @@ public:
         s.game.dodgeCancel.setValue(false);
         s.game.progressiveCombos.setValue(false);
         s.game.enableCrouchShield.setValue(true);
+        s.game.enableManualShield.setValue(true);
     }
 
 protected:

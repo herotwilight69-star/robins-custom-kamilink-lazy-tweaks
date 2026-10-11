@@ -116,6 +116,7 @@ void applyPresetKamilinkInit() {
     s.game.dodgeCancel.setValue(true);
     s.game.progressiveCombos.setValue(true);
     s.game.enableCrouchShield.setValue(true);
+    s.game.enableManualShield.setValue(true);
 }
 }  // namespace
 
