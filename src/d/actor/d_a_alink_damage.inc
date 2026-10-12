@@ -671,7 +671,7 @@ BOOL daAlink_c::checkDamageAction() {
     
         if (var_r29->ChkTgShieldHit()) {
             setGuardSe(var_r29);
-            if (dusk::getSettings().game.shieldUsesMeter) {
+            if (dusk::getSettings().game.shieldUsesMeter && dusk::getSettings().game.enableSkillMeter) {
                 mSkillCooldown += 150;
             }
 
