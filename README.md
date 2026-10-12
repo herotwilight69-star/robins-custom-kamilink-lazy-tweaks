@@ -1,73 +1,88 @@
-**Kamilink's Lazy Tweaks**
+# Kamilink's Lazy Tweaks
 
-A custom build of TwilitRealm's PC port of The Legend of Zelda: Twilight Princess, Dusklight. Tested on Fedora Linux (KDE Plasma), Windows 11, iOS, and Android.
+A custom build/fork of TwilitRealm's PC port for The Legend of Zelda: Twilight Princess, Dusklight focusing on enhancing difficulty customization, combat depth, enemy AI, and quality of life.
 
-**Demo Video (Youtube):**
+<div align="center">
+  <img src="res/hypeLTbanner-smaller.png" alt="Logo" width="2560" height="1600">
+</div>
 
-[![Demo Video](https://img.youtube.com/vi/hzjTxhaUWG4/0.jpg)](https://www.youtube.com/watch?v=hzjTxhaUWG4)
-
+## AI/LLM Statement:
+I am fairly strict about AI usage. No AI-generated code has been used in Lazy Tweaks--all features are my own work unless otherwise stated. I do occasionally consult an LLM if I absolutely cannot make sense of something in TP's extremely messy codebase, but this is rare and I otherwise often spend entire days on trial-and-error or ask questions in the TwilitRealm Discord before I fallback to that. Please note that I do not wish to imply disrespect towards other modders who are transparent about their AI-usage; it is simply a limitation I set for myself as I want to become the best programmer I can be through my own merit. Please understand that this may drastically increase the amount of time it takes for me to work on this mod, so I can only hope what I put out makes everyone's patience well worth it.
 This was mainly a fun side project for me as someone who is pretty new to C++ and was, until about two weeks ago, completely unfamiliar with the decomp code. I started this intending just to see what I could do and how much I could do on my own, but I also saw a lot of people in the Dusklight discord asking for some of these features, so I decided to release it as a mod/custom build.
 
-Main features:
-- Option in Dusklight menu difficulty section that allows you to control how much damage Link's sword can do
+## Presets (for those who don't want to waste time tinkering)
+- **Fior di Battaglia**: the intended Lazy Tweaks experience, a full combat rebalance that starts gentle and ramps up in the second half of the game.
+- **Vanilla Plus**: closer to the original game, just more engaging.
+- **Deathwish**: am I not enough for you?
 
-- Option in Dusklight gameplay menu that will keep the sword and shield visible on Wolf Link's back
-  
-  >_This will inevitably cause clipping with Midna's model. Will work on an option to toggle her visibility on/off soon._
+## Combat
+- **Manual Shielding**: Link no longer raises his shield automatically when locking on. Shield Attack moves to R+B.
+- **Crouch Shielding**: crouch behind your shield, plus crouch stabs and swings, like the N64 Zelda games.
+- **Parry**: shield bash right before an attack lands to parry it.
+- **Deflect**: an alternate parry based on timing your block instead of a shield bash.
+- **Combined Parrying**: use both Deflect and Parry, with a new Riposte follow-up on B after a successful parry.
+- **Rolling while shielded**: side roll and back roll by pressing A and a direction while locked on and shielding.
+- **Attack Dodge Cancel**: dodge out of some basic attacks with R+A.
+- **Progressive Combo Damage**: each hit in a combo does a bit more damage than the last.
+- Dodges give invincibility frames, and guard breaks are more punishing.
+- Jump Strike charges faster and can be charged in the middle of a combo.
 
-- Manual shielding (no toggle option yet)
-  
-  >_Shield attack is now R+B, text changes to reflect this coming soon_
+## Skill Meter
+- A new meter (built from the game's unused magic meter) that limits how often you can use powerful moves like Midna Charge, Wolf jump attacks, Shield Attack, Helm Splitter, and Back Slice.
+- Optional: make blocking and the Great Spin use the meter too.
+- Optional: exclude Wolf jump attacks or Midna Charge from the meter.
 
-- Crouch shielding (no toggle option yet)
-  
-  >_Restored an unused animation, applies when holding R and not targeting (same as older games)_
+## Wolf Link
+- New spot-dodge on **Z**, with a follow-up attack on **B**.
+- Faster attacks, a restored unused scratch attack as the third combo hit, and Ending Blow on more than just poes.
+- **Sturdier Wolf Link**: Wolf Link no longer takes double damage. Makes Twilight sections less ass on higher damage multipliers.
 
-- Extended Wolf Link finishers/Ending Blow
+## Enemies & Bosses
+- Reworked behavior for many common enemies, including Bokoblins, Bulblins, Lizalfos, Dynalfos, Darknuts, Skulltulas, Deku Babas, Big Baba, Baba Serpents, and Shadow Beasts. They're generally faster, more aggressive, and smarter about fighting back.
+- Tougher bosses, including Diababa, Fyrus, King Bulblin, Death Sword, Darknut (1v1), and a big Ganondorf rework.
 
-  >_You can now perform ending blow on most common enemies as Wolf Link!_
+## Difficulty & Penalties
+- **Sword**, **Bow**, and **Wolf Damage Multipliers**.
+- **Progressive Damage Multiplier**: an additional 2x damage multiplier is added to your existing damage multiplier setting in the second half of the game for a smoother difficulty curve (2x becomes 4x, 4x becomes 6x, etc.).
+- **Death Rupee Tax**: lose a set amount, half, or a quarter of your rupees when you die.
+- **Adjustable Heart Drop Rate**, **No Arrow Drops**, and **No Rupee Drops**.
+- **Insulated Zora Armor**: no more weakness to ice and fire.
 
-- Restart from the beginning of an area/dungeon upon death rather than beginning of a room (no toggle option yet)
-  
-  >_Older games in the series already did this, which I thought would be an appropriate change given TP's already piss easy difficulty_
+## Quality of Life
+- Auto update checker, like the main Dusklight branch; takes you to latest Github release.
+- Independent data directory from main Dusklight install.
+- Assign items to the **Z button** from the item wheel. Compatible with Twilit Essential's Quick Select feature and Olivia!!!'s Extra Items mod!
+- Faster bottle drinking, faster swimming/swim dashing with and without Zora armor.
+- **Suppress Button Prompts**: hide prompts that experienced players don't need.
+- **Easy Quick Spin** cheat (Cheats tab) now uses R + Left/Right.
 
-- Lose rupees on death
-  
-  >_Optional toggle under difficulty section, lose half of Link's rupees on death (except some events, for now)_
+## Visuals & Audio
+- **Always Glowing Light Sword**: keep the Master Sword's glow after the Sols, either just visually or with the damage boost.
+- **More Prominent Sword Trail**.
+- **Shadow/Translucent Midna** or **Invisible Midna** while riding on Wolf Link.
+- - **Always Show Gear As Wolf**: keep the sword and shield visible on Wolf Link.
+- **No Hitstop**: remove the brief freeze when attacks connect.
+- **No Battle Music** and **Mute All Music** options.
 
-- sudafed's No Hitstop toggle
+## HUD stuff for mod compatibility
+- **Z-Item Scale**, **Hide Z Button Ammo**, and **Hide Midna Icon**.
+- Move the **Midna icon** and **Skill Meter** anywhere on screen.
 
-  >_Optional toggle under gameplay section, turn off the brief frame pause when Link lands an attack_
+## On mod compatibility
+Mod compatibility with big mods is always going to be finnicky at times, even on vanilla Dusklight. However, most mods are compatible out of the box! For those big mods that touch a lot of things (Twilit Essentials, Dawnlight, A Link Between Twilight, etc.), be sure to configure their settings so as to not conflict with existing Lazy Tweaks features. The big one is Z-items, which Lazy Tweaks already comes with natively. Disable it and any other potentially conflicting features and you should be good. I personally use Twilit Essentials and have had an incredibly smooth experience (thanks to Fimmel).
 
-Known issues:
-- After performing a finisher/ending blow on an enemy as Wolf Link, you may be unable to jump attack until you perform a regular B attack or other action
-  >_UPDATE: This has been fixed and will be included in the next update._
+## INSTRUCTIONS:
+Windows: extract into its own folder and launch. Uses its own data directory at %AppData%\Kamilink\LazyTweaks by default. You can port over your existing Dusklight settings by just copy and pasting the contents of %AppData%\TwilitRealm\Dusklight to the new directory.
 
-Planned features:
-- Toggle options for features that do not currently have them
-  
-  >_Just makes sense to include this with the sword+shield visibility option._
+Linux: extract and launch the appimage from anywhere. Make executable if needed, depending on your system. Uses its own data directory at /home/yourusername/.local/share/Kamilink/LazyTweaks/. You can port over your existing Dusklight settings by just copy and pasting the contents of /home/yourusername/.local/share/TwilitRealm/Dusklight/ to the new directory.
 
-- Z Button Items (Almost done)
-
-  >_The QOL feature that everybody asks for. This is what is taking the most time and attention right now because Nintendo devs were smoking crack when they made this game._
-
-- Whatever else I think of on a whim
-
-**INSTALLATION:**
-
-Windows: extract into its own folder and launch. If using the dusklight portable version, extract into your dusklight data folder.
-
-Linux: extract and launch the appimage from anywhere not protected.
-
-Android: Download, install, and launch.
+Android: Download, install, and launch. Backup your data folder beforehand just in case, but it should be installed as its own app/package with its own data, so you no longer need to uninstall vanilla Dusklight.
 
 iOS: Sideload to iOS using iloader or something similar. For more detailed instructions, see Dusklight's official github.
 
-Mac: Not sure, don't have a Mac to test on. Extract and launch probably?
+Mac: Not sure, don't have a mac to test on. Extract and launch probably?
 
-#
-**ORIGINAL DUSKLIGHT README:**
+## ORIGINAL DUSKLIGHT README:
 <div align="center">
   <img src="res/logo.png" alt="Logo" width="640">
 
