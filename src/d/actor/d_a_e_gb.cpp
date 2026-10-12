@@ -57,9 +57,9 @@ daE_GB_HIO_c::daE_GB_HIO_c() {
     face_size = 1.0f;
     flower_size = 1.0f;
     stem_size = 1.0f;
-    attack_frequency = 15;
-    attack_spd = 65.0f;
-    attack_range = 12;
+    attack_frequency = 10;
+    attack_spd = 97.5f;
+    attack_range = 16;
     post_attack_pause_timer = 10;
 }
 
@@ -237,8 +237,8 @@ static void e_gb_attack_1(e_gb_class* i_this) {
             break;
 
         case 1:
-            cLib_addCalcAngleS2(&actor->current.angle.y, i_this->angleYTarget, 2, 0x800);
-            cLib_addCalcAngleS2(&actor->current.angle.x, i_this->angleXTarget, 2, 0x800);
+            cLib_addCalcAngleS2(&actor->current.angle.y, i_this->angleYTarget, 2, 0x1200);
+            cLib_addCalcAngleS2(&actor->current.angle.x, i_this->angleXTarget, 2, 0x1200);
             cMtx_YrotS(*calc_mtx, actor->current.angle.y);
 
             work.x = 0.0f;

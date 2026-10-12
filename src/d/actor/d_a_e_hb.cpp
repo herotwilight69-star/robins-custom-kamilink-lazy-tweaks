@@ -45,7 +45,7 @@ daE_HB_HIO_c::daE_HB_HIO_c() {
     flower_size = 0.5f;
     appear_size = 1.0f;
     roof_reappear_interval = 70;
-    attack_freq = 30;
+    attack_freq = 15;
     bite_pattern = 1;
 }
 
@@ -282,7 +282,7 @@ static void e_hb_appear(e_hb_class* i_this) {
 
     switch (i_this->mode) {
     case 0:
-        anm_init(i_this, 5, 10.0f, 0, 1.0f);
+        anm_init(i_this, 5, 10.0f, 0, 2.0f);
         leaf_anm_init(i_this, 0x13, 10.0f, 2, 1.0f);
         i_this->mode = 1;
 
@@ -336,7 +336,7 @@ static void e_hb_appear_v(e_hb_class* i_this) {
 
     switch (i_this->mode) {
     case 0:
-        anm_init(i_this, 5, 5.0f, 0, 1.0f);
+        anm_init(i_this, 5, 5.0f, 0, 2.0f);
         leaf_anm_init(i_this, 0x13, 5.0f, 2, 1.0f);
         i_this->mode = 1;
         i_this->timers[0] = JREG_S(6) + 30;
@@ -397,7 +397,7 @@ static void e_hb_wait(e_hb_class* i_this) {
         i_this->mode = 1;
 
         if (i_this->arg1 == 1) {
-            i_this->timers[1] = 30.0f + cM_rndF(20.0f);
+            i_this->timers[1] = 10.0f + cM_rndF(10.0f);
         } else {
             i_this->timers[1] = l_HIO.attack_freq + cM_rndF(l_HIO.attack_freq);
         }
@@ -480,12 +480,12 @@ static void e_hb_attack(e_hb_class* i_this) {
         /* fallthrough */
     case 1:
         if (i_this->field_0x851 != 0) {
-            cLib_addCalcAngleS2(&actor->shape_angle.y, (i_this->angle_to_player + 0x8000), 8, 0x800);
+            cLib_addCalcAngleS2(&actor->shape_angle.y, (i_this->angle_to_player + 0x8000), 3, 0x1200);
             sp78.x = 0.0f;
             sp78.y = -170.0f + TREG_F(3);
             sp78.z = 100.0f + TREG_F(4);
         } else {
-            cLib_addCalcAngleS2(&actor->shape_angle.y, i_this->angle_to_player, 8, 0x800);
+            cLib_addCalcAngleS2(&actor->shape_angle.y, i_this->angle_to_player, 3, 0x1200);
             sp78.x = 0.0f;
             sp78.y = 170.0f + TREG_F(3);
             sp78.z = -100.0f + TREG_F(4);
