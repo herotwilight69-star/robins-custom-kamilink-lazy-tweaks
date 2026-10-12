@@ -277,6 +277,7 @@ struct UserSettings {
         ConfigVar<MenuScaling> menuScalingMode;
         ConfigVar<bool> wolfGear;
         ConfigVar<bool> shadowMidna;
+        ConfigVar<bool> invisibleMidna;
         ConfigVar<LightSwordMode> alwaysLightSword;
         ConfigVar<bool> swordTrail;
         ConfigVar<bool> suppressButtonPrompts;

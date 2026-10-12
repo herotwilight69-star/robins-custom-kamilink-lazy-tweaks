@@ -3101,20 +3101,28 @@ bool daMidna_c::checkShadowMidnaSettingForce() const {
 void daMidna_c::setMidnaNoDrawFlg() {
 #if TARGET_PC
     daAlink_c* link = daAlink_getAlinkActorClass();
-    if (dusk::getSettings().game.shadowMidna && link->checkWolf()
-        && mDemoType == 0 && !checkMidnaTired()) {
-        onStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE);
+    bool canMakeInvisible = false;
+
+    if (dusk::getSettings().game.shadowMidna) {
+        shadowMidnaWasOn = true;
+        if (link->checkWolf() && mDemoType == 0 && !checkMidnaTired()) {
+            onStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE);
+        }
     }
-    if (!dusk::getSettings().game.shadowMidna && link->checkWolf()
-        && mDemoType == 0 && !checkMidnaTired()) {
+    if (!dusk::getSettings().game.shadowMidna && shadowMidnaWasOn) {
+        shadowMidnaWasOn = false;
         if (checkStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE)) {
             offStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE);
         }
     }
+    if (dusk::getSettings().game.invisibleMidna && link->checkWolf()
+        && mDemoType == 0 && !checkMidnaTired()) {
+        canMakeInvisible = true;
+    }
 #endif
     if (
         (!checkStateFlg1((daMidna_FLG1)(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE | FLG1_UNK_1)) &&
-        (!checkAppear() || !checkMidnaRealBody())) || daAlink_c::checkCloudSea()
+        (!checkAppear() || !checkMidnaRealBody())) || daAlink_c::checkCloudSea() || canMakeInvisible
     ) {
         onStateFlg0(FLG0_NO_DRAW);
     } else if (

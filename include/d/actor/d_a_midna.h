@@ -538,6 +538,9 @@ public:
     /* 0x9C4 */ cXyz mForceNeckAimPos;
     /* 0x9D0 */ daKago_c* mpKago;
     /* 0x9D4 */ daMidna_func mpFunc;
+#if TARGET_PC
+    bool shadowMidnaWasOn = false;
+#endif
 };
 
 STATIC_ASSERT(sizeof(daMidna_c) == 0x9E0);

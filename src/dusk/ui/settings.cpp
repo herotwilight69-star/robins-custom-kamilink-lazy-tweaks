@@ -1631,6 +1631,8 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             "Makes the sword and shield always visible on Wolf Link.");
         addOption("Shadow/Translucent Midna", getSettings().game.shadowMidna,
             "Makes Midna appear in her shadow form on Wolf Link's back. Causes less issues than the old Invisible Midna setting.");
+        addOption("Invisible Midna", getSettings().game.invisibleMidna,
+            "Makes Midna appear invisible on Wolf Link's back. There is a known semi-softlock in the dialogue bit directly after taking the river shortcut after melting Zora's Domain. Temporarily turn the setting off if this happens.");
         leftPane.register_control(
             leftPane.add_select_button({
                 .key = "Always Glowing Light Sword",

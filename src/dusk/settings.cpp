@@ -99,7 +99,8 @@ UserSettings g_userSettings = {
         .enableDiscordPresence {"game.enableDiscordPresence", true},
         .menuScalingMode {"game.menuScalingMode", MenuScaling::Wii},
         .wolfGear {"game.wolfGear", false},
-        .shadowMidna {"game.invisibleMidna", false},
+        .shadowMidna {"game.shadowMidna", false},
+        .invisibleMidna {"game.invisibleMidna", false},
         .alwaysLightSword {"game.alwaysLightSword", LightSwordMode::OFF},
         .swordTrail {"game.swordTrail", false},
         .suppressButtonPrompts {"game.suppressButtonPrompts", false},
@@ -461,6 +462,7 @@ void registerSettings() {
     Register(g_userSettings.game.swapDirectSelect);
     Register(g_userSettings.game.wolfGear);
     Register(g_userSettings.game.shadowMidna);
+    Register(g_userSettings.game.invisibleMidna);
     Register(g_userSettings.game.alwaysLightSword);
     Register(g_userSettings.game.swordTrail);
     Register(g_userSettings.game.suppressButtonPrompts);
