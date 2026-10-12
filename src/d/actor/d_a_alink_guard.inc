@@ -249,7 +249,9 @@ void daAlink_c::setShieldGuard() {
          !checkRideOn() && checkGuardActionChange() && (mDoCPd_c::getHoldLockR(PAD_1) || mDoCPd_c::getTrigR(PAD_1)
              || !dusk::getSettings().game.enableManualShield)))
     {
-        onNoResetFlg2(FLG2_UNK_8000000);
+        if (mGuardBreakTimer >= 0) {
+            onNoResetFlg2(FLG2_UNK_8000000);
+        }
     } else {
         offNoResetFlg2(FLG2_UNK_8000000);
     }

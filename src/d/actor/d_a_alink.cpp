@@ -18300,7 +18300,6 @@ int daAlink_c::execute() {
         if (mDodgeTimer != 0) {
             mDodgeTimer--;
         }
-
         if (mDodgeTimer <= 0) {
             mDodgeTimer = 0;
         }
@@ -18316,7 +18315,6 @@ int daAlink_c::execute() {
             }
             mCanWolfDodge = true;
         }
-
         // Wolf Z-dodge handling
         if (!mIsWolfDodge && checkNowWolf() && !checkGrabAnime() && !checkUpperReadyThrowAnime()
             && !wallGrabTrigger() && !checkFmChainGrabAnime() && !checkEventRun() && !getWallGrabStatus()
@@ -18326,7 +18324,6 @@ int daAlink_c::execute() {
             mWaitThisLong = 30;
             mIsWolfDodge = true;
         }
-
         // Wolf Z-dodge followup attack
         if (mIsWolfDodge && mDoCPd_c::getTrigB(PAD_1)) {
             resetUpperAnime(UPPER_2, 3.0f);
@@ -18337,12 +18334,22 @@ int daAlink_c::execute() {
         if (mParryTimer != 0) {
             mParryTimer--;
         }
-
         if (mParryTimer <= 0) {
             mParryTimer = 0;
             mIsNormalParry = false;
             mIsCombinedParry = false;
             mIsDeflect = false;
+        }
+
+        // Guard break timer for preventing avoiding damage via repeated guard breaks
+        if (mProcID == PROC_GUARD_BREAK) {
+            mGuardBreakTimer = 30;
+        }
+        if (mGuardBreakTimer != 0) {
+            mGuardBreakTimer--;
+        }
+        if (mGuardBreakTimer <= 0) {
+            mGuardBreakTimer = 0;
         }
 
         // Don't tick down mSkillCooldown while the player is guarding
@@ -18356,20 +18363,18 @@ int daAlink_c::execute() {
                 mSkillCooldown--;
             }
         }
-
+        // Ceiling so skill cooldown does not "fatigue" for long ass times if the player keeps guarding
         if (mSkillCooldown >= 450) {
             mSkillCooldown = 450;
         }
-
         if (mSkillCooldown <= 0) {
             mSkillCooldown = 0;
         }
 
+        // Multi purpose timer for stuff
         if (mWaitThisLong != 0) {
             mWaitThisLong--;
         }
-
-        // Multi purpose timer for stuff
         if (mWaitThisLong <= 0) {
             if (mIsDeflectAnm) {
                 resetUpperAnime(UPPER_2, 3.0);
@@ -18412,7 +18417,6 @@ int daAlink_c::execute() {
             }
             mRiposteTimer--;
         }
-
         if (mRiposteTimer <= 0) {
             mRiposteTimer = 0;
         }

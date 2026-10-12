@@ -4588,6 +4588,7 @@ public:
     bool mIsShielding = false;
     bool mIsWolfDodge = false;
     bool mCanWolfDodge = false;
+    s16 mGuardBreakTimer = 0;
 
 public:
     daPy_anmHeap_c& itemHeap(int i) { return i < 2 ? mItemHeap_[i] : mItemHeapZ_; }
