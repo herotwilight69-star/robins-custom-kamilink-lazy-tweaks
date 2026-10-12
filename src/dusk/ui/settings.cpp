@@ -1661,7 +1661,7 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                         });
                 }
                 pane.add_rml(
-                    "<br/>Retain the Master Sword's glow effect after infusing it with the two Sols.");
+                    "<br/>Retain the Master Sword's glow effect after infusing it with the two Sols. Include Damage Boost may have unintended interactions with enemies/bosses weak to Light.");
             });
         addOption("More Prominent Sword Trail", getSettings().game.swordTrail,
                 "Makes the sword trail more prominent when swinging.");
