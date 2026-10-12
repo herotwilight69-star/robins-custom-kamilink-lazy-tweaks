@@ -18342,9 +18342,6 @@ int daAlink_c::execute() {
         }
 
         // Guard break timer for preventing avoiding damage via repeated guard breaks
-        if (mProcID == PROC_GUARD_BREAK) {
-            mGuardBreakTimer = 30;
-        }
         if (mGuardBreakTimer != 0) {
             mGuardBreakTimer--;
         }

@@ -249,7 +249,7 @@ void daAlink_c::setShieldGuard() {
          !checkRideOn() && checkGuardActionChange() && (mDoCPd_c::getHoldLockR(PAD_1) || mDoCPd_c::getTrigR(PAD_1)
              || !dusk::getSettings().game.enableManualShield)))
     {
-        if (mGuardBreakTimer >= 0) {
+        if (mGuardBreakTimer <= 0) {
             onNoResetFlg2(FLG2_UNK_8000000);
         }
     } else {
@@ -587,6 +587,7 @@ int daAlink_c::procGuardBreakInit() {
     field_0x3588 = l_halfAtnWaitBaseAnime;
     dComIfGp_getVibration().StartShock(VIBMODE_S_POWER5, 0x1F, cXyz(0.0f, 1.0f, 0.0f));
     voiceStart(Z2SE_AL_V_GUARD_BROKEN);
+    mGuardBreakTimer = 75;
     return 1;
 }
 
