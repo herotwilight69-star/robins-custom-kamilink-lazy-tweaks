@@ -18,7 +18,7 @@ public:
         s.game.noHeartDrops.setValue(true);
         s.game.noArrowDrops.setValue(false);
         s.game.noRupeeDrops.setValue(false);
-        s.game.loseRupeesHalf.setValue(true);
+        s.game.halfMyShitIsGone.setValue(true);
         s.game.insulatedZoraArmor.setValue(true);
         s.game.sturdierWolfLink.setValue(true);
         s.game.progressiveDefense.setValue(true);
@@ -53,7 +53,7 @@ public:
         s.game.noHeartDrops.setValue(true);
         s.game.noArrowDrops.setValue(true);
         s.game.noRupeeDrops.setValue(true);
-        s.game.loseRupeesHalf.setValue(true);
+        s.game.halfMyShitIsGone.setValue(true);
         s.game.insulatedZoraArmor.setValue(true);
         s.game.sturdierWolfLink.setValue(true);
         s.game.progressiveDefense.setValue(true);
@@ -88,7 +88,7 @@ public:
         s.game.noHeartDrops.setValue(true);
         s.game.noArrowDrops.setValue(false);
         s.game.noRupeeDrops.setValue(false);
-        s.game.loseRupeesHalf.setValue(false);
+        s.game.halfMyShitIsGone.setValue(false);
         s.game.insulatedZoraArmor.setValue(false);
         s.game.sturdierWolfLink.setValue(false);
         s.game.progressiveDefense.setValue(true);

@@ -1396,7 +1396,8 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                 pane.clear();
                 pane.add_text("Am I not enough for you?");
             });
-        leftPane.add_section("Combat");
+
+        leftPane.add_section("Damage Given/Received");
         leftPane.register_control(
             leftPane.add_child<NumberButton>(NumberButton::Props{
                 .key = "Sword Damage Multiplier",
@@ -1469,6 +1470,23 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                 pane.clear();
                 pane.add_text("Multiplies the damage Link's arrows will do to most enemies. Set to 0 to make most enemies invulnerable to arrows. Does not affect Bomb Arrows.");
             });
+        config_bool_select(leftPane, rightPane, getSettings().game.progressiveDefense,
+            {
+                .key = "Progressive Damage Multiplier",
+                .helpText = "Automatically applies a smoother difficulty curve by placing an additional 2x damage multiplier to the existing value halfway through the game (2x becomes 4x, 4x becomes 6x, etc.).",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.insulatedZoraArmor,
+            {
+                .key = "Insulated Zora Armor",
+                .helpText = "Zora Armor is no longer weak to ice and fire. Wear Mommy Zora's fashionable gift to you without fear.",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.sturdierWolfLink,
+            {
+                .key = "Sturdier Wolf Link",
+                .helpText = "Wolf Link no longer takes twice as much damage as Link in human form.",
+            });
+
+        leftPane.add_section("Penalties and Drop Rates");
         leftPane.register_control(
             leftPane.add_child<NumberButton>(NumberButton::Props{
                 .key = "Death Rupee Tax",
@@ -1487,15 +1505,15 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                 .min = 0,
                 .max = 2000,
                 .step = 50,
-                .suffix = "Rupees",
+                .suffix = " Rupees",
             }),
             rightPane, [](Pane& pane) {
                 pane.clear();
                 pane.add_text("Set a custom amount of rupees to lose upon death.");
             });
-        addSpeedrunDisabledOption("Death Rupee Tax (Half)", getSettings().game.loseRupeesHalf,
+        addSpeedrunDisabledOption("Death Rupee Tax (Half)", getSettings().game.halfMyShitIsGone,
             "Half of Link's rupees at the time of death will be lost. It's like Dark Souls, but shittier.");
-        config_bool_select(leftPane, rightPane, getSettings().game.loseRupeesQuarter,
+        config_bool_select(leftPane, rightPane, getSettings().game.quarterDeathTax,
             {
                 .key = "Death Rupee Tax (Quarter)",
                 .helpText = "Quarter of Link's rupees at the time of death will be lost. It's like Dark Souls, but...poopier, I guess? I don't know, man. I just work here.",
@@ -1534,21 +1552,8 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                 .key = "No Rupee Drops",
                 .helpText = "Suddenly, Malo began investing in Golden Bugs.",
             });
-        config_bool_select(leftPane, rightPane, getSettings().game.insulatedZoraArmor,
-            {
-                .key = "Insulated Zora Armor",
-                .helpText = "Zora Armor is no longer weak to ice and fire. Wear Mommy Zora's fashionable gift to you without fear.",
-            });
-        config_bool_select(leftPane, rightPane, getSettings().game.sturdierWolfLink,
-            {
-                .key = "Sturdier Wolf Link",
-                .helpText = "Wolf Link no longer takes twice as much damage as Link in human form.",
-            });
-        config_bool_select(leftPane, rightPane, getSettings().game.progressiveDefense,
-            {
-                .key = "Progressive Damage Multiplier",
-                .helpText = "Automatically applies a smoother difficulty curve by placing an additional 2x damage multiplier to the existing value halfway through the game (2x becomes 4x, 4x becomes 6x, etc.).",
-            });
+
+        leftPane.add_section("Skill Meter and Other Mechanics");
         config_bool_select(leftPane, rightPane, getSettings().game.enableSkillMeter,
             {
                 .key = "Enable Skill Meter",
@@ -1558,6 +1563,24 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             {
                 .key = "Shield Uses Meter",
                 .helpText = "Blocking attacks will consume the skill meter, and the meter will not regenerate while blocking. Blocking without enough meter will incur a guard break. Parrying fully restores meter.",
+                .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.meterSpin,
+            {
+                .key = "Great Spin Uses Meter",
+                .helpText = "Ties the Great Spin to the skill meter. Can use Great Spin so long as Link's health and the skill meter are above half. Full health incurs no meter cost.",
+                .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.noWolfJumpMeter,
+            {
+                .key = "Disable Wolf Jump Meter Usage",
+                .helpText = "Disable Wolf jump attacks using the skill meter when the meter is enabled.",
+                .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.noMidnaChargeMeter,
+            {
+                .key = "Disable Midna Charge Meter Usage",
+                .helpText = "Disable Midna charge attacks using the skill meter when the meter is enabled.",
                 .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
             });
         config_bool_select(leftPane, rightPane, getSettings().game.alternateParry,
@@ -1591,24 +1614,6 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             {
                 .key = "Progressive Combo Damage",
                 .helpText = "Each sequential hit in a combo string deals slightly more damage. Best when playing with a sword damage multiplier of lower than 50%.",
-            });
-        config_bool_select(leftPane, rightPane, getSettings().game.meterSpin,
-            {
-                .key = "Great Spin Uses Meter",
-                .helpText = "Ties the Great Spin to the skill meter. Can use Great Spin so long as Link's health and the skill meter are above half. Full health incurs no meter cost.",
-                .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
-            });
-        config_bool_select(leftPane, rightPane, getSettings().game.noWolfJumpMeter,
-            {
-                .key = "Disable Wolf Jump Meter Usage",
-                .helpText = "Disable Wolf jump attacks using the skill meter when the meter is enabled.",
-                .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
-            });
-        config_bool_select(leftPane, rightPane, getSettings().game.noMidnaChargeMeter,
-            {
-                .key = "Disable Midna Charge Meter Usage",
-                .helpText = "Disable Midna charge attacks using the skill meter when the meter is enabled.",
-                .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
             });
 
         leftPane.add_section("Gamefeel Stuff");
@@ -1662,7 +1667,8 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                 "Makes the sword trail more prominent when swinging.");
         addOption("Suppress Button Prompts", getSettings().game.suppressButtonPrompts,
                 "Suppresses many button prompts that become redundant for experienced players.");
-        leftPane.add_section("Other Shit");
+
+        leftPane.add_section("Other Shit (UI)");
         config_percent_select(leftPane, rightPane, getSettings().game.zItemScale,
             "Z-Item Scale",
             "Scales the size of item icons on Z. Re-equip item or reload area after changing.",

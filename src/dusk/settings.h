@@ -234,8 +234,8 @@ struct UserSettings {
         ConfigVar<int> heartDropRate;
         ConfigVar<bool> noArrowDrops;
         ConfigVar<bool> noRupeeDrops;
-        ConfigVar<bool> loseRupeesHalf;
-        ConfigVar<bool> loseRupeesQuarter;
+        ConfigVar<bool> halfMyShitIsGone;
+        ConfigVar<bool> quarterDeathTax;
         ConfigVar<int> deathRupeeTax;
         ConfigVar<bool> instantDeath;
         ConfigVar<bool> fastClimbing;

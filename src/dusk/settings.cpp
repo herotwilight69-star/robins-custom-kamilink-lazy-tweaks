@@ -57,8 +57,8 @@ UserSettings g_userSettings = {
         .heartDropRate {"game.heartDropRate", 100},
         .noArrowDrops {"game.noArrowDrops", false},
         .noRupeeDrops {"game.noRupeeDrops", false},
-        .loseRupeesHalf {"game.loseRupees", false},
-        .loseRupeesQuarter {"game.loseRupees", false},
+        .halfMyShitIsGone {"game.halfMyShitIsGone", false},
+        .quarterDeathTax {"game.quarterDeathTax", false},
         .deathRupeeTax {"game.deathRupeeTax", 0},
         .instantDeath {"game.instantDeath", false},
         .fastClimbing {"game.fastClimbing", false},
@@ -329,8 +329,8 @@ void registerSettings() {
     Register(g_userSettings.game.heartDropRate);
     Register(g_userSettings.game.noArrowDrops);
     Register(g_userSettings.game.noRupeeDrops);
-    Register(g_userSettings.game.loseRupeesHalf);
-    Register(g_userSettings.game.loseRupeesQuarter);
+    Register(g_userSettings.game.halfMyShitIsGone);
+    Register(g_userSettings.game.quarterDeathTax);
     Register(g_userSettings.game.deathRupeeTax);
     Register(g_userSettings.game.instantDeath);
     Register(g_userSettings.game.fastClimbing);
