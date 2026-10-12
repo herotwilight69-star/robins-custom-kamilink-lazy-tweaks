@@ -231,9 +231,12 @@ struct UserSettings {
         ConfigVar<bool> noMidnaChargeMeter;
         ConfigVar<int> bowMultiplier;
         ConfigVar<bool> noHeartDrops;
+        ConfigVar<int> heartDropRate;
         ConfigVar<bool> noArrowDrops;
         ConfigVar<bool> noRupeeDrops;
-        ConfigVar<bool> loseRupees;
+        ConfigVar<bool> loseRupeesHalf;
+        ConfigVar<bool> loseRupeesQuarter;
+        ConfigVar<int> deathRupeeTax;
         ConfigVar<bool> instantDeath;
         ConfigVar<bool> fastClimbing;
         ConfigVar<bool> noMissClimbing;

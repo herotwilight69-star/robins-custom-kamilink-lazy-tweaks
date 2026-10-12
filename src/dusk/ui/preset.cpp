@@ -92,7 +92,7 @@ void applyPresetKamilinkInit() {
     s.game.noHeartDrops.setValue(true);
     s.game.noArrowDrops.setValue(false);
     s.game.noRupeeDrops.setValue(false);
-    s.game.loseRupees.setValue(true);
+    s.game.loseRupeesHalf.setValue(true);
     s.game.insulatedZoraArmor.setValue(true);
     s.game.sturdierWolfLink.setValue(true);
     s.game.progressiveDefense.setValue(true);

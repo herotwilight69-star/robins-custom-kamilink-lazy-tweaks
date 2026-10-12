@@ -228,6 +228,8 @@ void daItem_c::setCullInfo() {
 
 int daItem_c::_daItem_create() {
     fopAcM_ct(this, daItem_c);
+    f32 heartDropRate = dusk::getSettings().game.heartDropRate.getValue() / 100.0f;
+    f32 rnd = cM_rndF(1.0f);
 
     if (!field_0x95d) {
         field_0x92c = home.angle.x;
@@ -258,6 +260,11 @@ int daItem_c::_daItem_create() {
 #if TARGET_PC
     if (dusk::getSettings().game.noHeartDrops && isHeart(m_itemNo)) {
         return cPhs_ERROR_e;
+    }
+    if (dusk::getSettings().game.heartDropRate != 100) {
+        if (rnd > heartDropRate) {
+            return cPhs_ERROR_e;
+        }
     }
     if (dusk::getSettings().game.noArrowDrops && isArrow(m_itemNo)) {
         return cPhs_ERROR_e;

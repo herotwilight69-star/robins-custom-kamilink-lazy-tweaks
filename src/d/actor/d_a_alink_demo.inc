@@ -3038,14 +3038,24 @@ int daAlink_c::procCoDeadInit(int param_0) {
     field_0x3080 = 0;
     mProcVar5.field_0x3012 = 0x3F;
     field_0x3198 = -1;
-    if (dusk::getSettings().game.loseRupees) {
+    if (dusk::getSettings().game.loseRupeesHalf || dusk::getSettings().game.loseRupeesQuarter || dusk::getSettings().game.deathRupeeTax != 0) {
         loseRupees();
     }
     return 1;
 }
 #if TARGET_PC
 void daAlink_c::loseRupees() {
-    g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().getRupee() / 2);
+    int rupeesRobbed = dusk::getSettings().game.deathRupeeTax;
+
+    if (dusk::getSettings().game.loseRupeesHalf) {
+        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().getRupee() / 2);
+    }
+    if (dusk::getSettings().game.loseRupeesQuarter) {
+        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().getRupee() / 4);
+    }
+    if (dusk::getSettings().game.deathRupeeTax != 0) {
+        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().getRupee() - rupeesRobbed);
+    }
 }
 #endif
 

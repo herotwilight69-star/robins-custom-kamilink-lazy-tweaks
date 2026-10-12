@@ -1469,8 +1469,61 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                 pane.clear();
                 pane.add_text("Multiplies the damage Link's arrows will do to most enemies. Set to 0 to make most enemies invulnerable to arrows. Does not affect Bomb Arrows.");
             });
-        addSpeedrunDisabledOption("Lose Rupees On Death", getSettings().game.loseRupees,
-            "Half of Link's rupees will be lost upon death. It's like Dark Souls, but shittier.");
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Death Rupee Tax",
+                .getValue = [] { return getSettings().game.deathRupeeTax.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.deathRupeeTax.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return speedrun::isActive(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.deathRupeeTax.getValue() !=
+                               getSettings().game.deathRupeeTax.getDefaultValue();
+                    },
+                .min = 0,
+                .max = 2000,
+                .step = 50,
+                .suffix = "Rupees",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Set a custom amount of rupees to lose upon death.");
+            });
+        addSpeedrunDisabledOption("Death Rupee Tax (Half)", getSettings().game.loseRupeesHalf,
+            "Half of Link's rupees at the time of death will be lost. It's like Dark Souls, but shittier.");
+        config_bool_select(leftPane, rightPane, getSettings().game.loseRupeesQuarter,
+            {
+                .key = "Death Rupee Tax (Quarter)",
+                .helpText = "Quarter of Link's rupees at the time of death will be lost. It's like Dark Souls, but...poopier, I guess? I don't know, man. I just work here.",
+            });
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Heart Drop Rate",
+                .getValue = [] { return getSettings().game.heartDropRate.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.heartDropRate.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return speedrun::isActive(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.heartDropRate.getValue() !=
+                               getSettings().game.heartDropRate.getDefaultValue();
+                    },
+                .min = 0,
+                .max = 100,
+                .step = 10,
+                .suffix = "%",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Changes how often hearts drop from enemies, pots, grass, etc.");
+            });
         config_bool_select(leftPane, rightPane, getSettings().game.noArrowDrops,
             {
                 .key = "No Arrow Drops",
