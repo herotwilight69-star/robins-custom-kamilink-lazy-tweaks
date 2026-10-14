@@ -261,7 +261,7 @@ int daItem_c::_daItem_create() {
     if (dusk::getSettings().game.noHeartDrops && isHeart(m_itemNo)) {
         return cPhs_ERROR_e;
     }
-    if (dusk::getSettings().game.heartDropRate != 100) {
+    if (dusk::getSettings().game.heartDropRate != 100 && isHeart(m_itemNo)) {
         if (rnd > heartDropRate) {
             return cPhs_ERROR_e;
         }
