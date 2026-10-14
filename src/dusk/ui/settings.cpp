@@ -1610,6 +1610,11 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                 .key = "Attack Dodge Cancel",
                 .helpText = "Enables dodging in the middle of some basic attacks with R+A.",
             });
+        config_bool_select(leftPane, rightPane, getSettings().game.jumpStrikeCancel,
+            {
+                .key = "Jump Strike Cancel",
+                .helpText = "Enables initiating a jump strike charge in the middle of some basic attacks with R+A.",
+            });
         config_bool_select(leftPane, rightPane, getSettings().game.progressiveCombos,
             {
                 .key = "Progressive Combo Damage",

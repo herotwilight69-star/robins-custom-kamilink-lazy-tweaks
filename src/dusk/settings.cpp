@@ -81,6 +81,7 @@ UserSettings g_userSettings = {
         .combinedParry {"game.combinedParry", false},
         .meterSpin {"game.meterSpin", false},
         .dodgeCancel {"game.dodgeCancel", false},
+        .jumpStrikeCancel {"game.jumpStrikeCancel", false},
         .progressiveCombos {"game.progressiveCombos", false},
         .enableCrouchShield {"game.enableCrouchShield", false},
         .enableManualShield {"game.enableManualShield", false},
@@ -353,6 +354,7 @@ void registerSettings() {
     Register(g_userSettings.game.combinedParry);
     Register(g_userSettings.game.meterSpin);
     Register(g_userSettings.game.dodgeCancel);
+    Register(g_userSettings.game.jumpStrikeCancel);
     Register(g_userSettings.game.progressiveCombos);
     Register(g_userSettings.game.enableCrouchShield);
     Register(g_userSettings.game.enableManualShield);

@@ -258,6 +258,7 @@ struct UserSettings {
         ConfigVar<bool> combinedParry;
         ConfigVar<bool> meterSpin;
         ConfigVar<bool> dodgeCancel;
+        ConfigVar<bool> jumpStrikeCancel;
         ConfigVar<bool> progressiveCombos;
         ConfigVar<bool> enableCrouchShield;
         ConfigVar<bool> enableManualShield;
