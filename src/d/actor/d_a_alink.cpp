@@ -18515,7 +18515,7 @@ int daAlink_c::execute() {
             if (mComboCutCount >= 1 && mComboCutCount <= 3 && dusk::getSettings().game.jumpStrikeCancel) {
                 if (mDoCPd_c::getHoldA(PAD_1) && !(mDoCPd_c::getTrigR(PAD_1) || mDoCPd_c::getHoldLockR(PAD_1))) {
                     if (mSkillCooldown <= 150 && (dComIfGs_isEventBit(dSv_event_flag_c::F_0343)
-                        || checkNoResetFlg3(FLG3_TRANING_CUT_LARGE_JUMP))) {
+                        || checkNoResetFlg3(FLG3_TRANING_CUT_LARGE_JUMP)) && direction == DIR_NONE) {
                         procCutLargeJumpChargeInit();
                     }
                 }
