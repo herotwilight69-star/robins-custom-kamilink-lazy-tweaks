@@ -314,6 +314,6 @@ jobs:
             build/install/*.exe
             build/install/*.dll
             build/install/res/
-            build/install/mods/
-            build/install/debug.7z
-            build/install/sdk/
+          # build/install/mods/
+          # build/install/debug.7z
+          # build/install/sdk/
