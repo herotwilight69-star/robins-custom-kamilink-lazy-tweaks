@@ -3046,15 +3046,16 @@ int daAlink_c::procCoDeadInit(int param_0) {
 #if TARGET_PC
 void daAlink_c::loseRupees() {
     int rupeesRobbed = dusk::getSettings().game.deathRupeeTax;
+    u16 playerRupees = g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().getRupee();
 
     if (dusk::getSettings().game.halfMyShitIsGone) {
-        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().getRupee() / 2);
+        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(playerRupees / 2);
     }
     if (dusk::getSettings().game.quarterDeathTax) {
-        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().getRupee() / 4);
+        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(playerRupees * 0.25);
     }
     if (dusk::getSettings().game.deathRupeeTax != 0) {
-        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().getRupee() - rupeesRobbed);
+        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(playerRupees - rupeesRobbed);
     }
 }
 #endif
