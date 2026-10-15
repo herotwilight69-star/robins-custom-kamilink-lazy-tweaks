@@ -3052,7 +3052,7 @@ void daAlink_c::loseRupees() {
         g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(playerRupees / 2);
     }
     if (dusk::getSettings().game.quarterDeathTax) {
-        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(playerRupees * 0.25);
+        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(playerRupees * 0.75);
     }
     if (dusk::getSettings().game.deathRupeeTax != 0) {
         g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(playerRupees - rupeesRobbed);
