@@ -11928,13 +11928,30 @@ BOOL daAlink_c::checkItemAction() {
                 // return procGuardAttackInit();
 
             // New shield attack handling
-            // If R is held,
-            if (mDoCPd_c::getHoldLockR(PAD_1) && mSkillCooldown <= 150) {
-                // Let B display the shield attack prompt
-                if (!dusk::getSettings().game.suppressButtonPrompts)
+            // If R is held and easy quick spin is OFF,
+            if (mDoCPd_c::getHoldLockR(PAD_1) && !dusk::getSettings().game.easyQuickSpin) {
+                // Let B display the shield attack prompt if requisite skill meter
+                if (!dusk::getSettings().game.suppressButtonPrompts && mSkillCooldown <= 150)
                     setBStatus(BUTTON_STATUS_SHIELD_ATTACK);
                 if (mDoCPd_c::getTrigB(PAD_1) && mSkillCooldown <= 150)
                     return procGuardAttackInit();
+            }
+            else if (mDoCPd_c::getHoldLockR(PAD_1) && dusk::getSettings().game.easyQuickSpin) {
+                // Let B display the shield attack prompt if requisite skill meter and not meeting easy quick spin requirements
+                if (!dusk::getSettings().game.suppressButtonPrompts && mSkillCooldown <= 150
+                    && getCutDirection() != DIR_LEFT && getCutDirection() != DIR_RIGHT)
+                    setBStatus(BUTTON_STATUS_SHIELD_ATTACK);
+                if (mDoCPd_c::getTrigB(PAD_1)) {
+                    if (mSkillCooldown <= 150 && getCutDirection() != DIR_LEFT && getCutDirection() != DIR_RIGHT) {
+                        return procGuardAttackInit();
+                    }
+                    if (getCutDirection() == DIR_LEFT) {
+                        return procCutTurnInit(1, 0);
+                    }
+                    if (getCutDirection() == DIR_RIGHT) {
+                        return procCutTurnInit(1, 1);
+                    }
+                }
             }
         }
     }
