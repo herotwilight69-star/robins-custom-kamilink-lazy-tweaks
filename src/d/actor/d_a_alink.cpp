@@ -11936,6 +11936,7 @@ BOOL daAlink_c::checkItemAction() {
                 if (mDoCPd_c::getTrigB(PAD_1) && mSkillCooldown <= 150)
                     return procGuardAttackInit();
             }
+            // if easy quick spin is ON,
             else if (mDoCPd_c::getHoldLockR(PAD_1) && dusk::getSettings().game.easyQuickSpin) {
                 // Let B display the shield attack prompt if requisite skill meter and not meeting easy quick spin requirements
                 if (!dusk::getSettings().game.suppressButtonPrompts && mSkillCooldown <= 150

@@ -264,6 +264,13 @@ UserSettings g_userSettings = {
             ActionBindConfigVar{"actionBindings.turboButton_port2", PAD_NATIVE_BUTTON_INVALID},
             ActionBindConfigVar{"actionBindings.turboButton_port3", PAD_NATIVE_BUTTON_INVALID},
         },
+        .oneButtonSpin {
+            ActionBindConfigVar{"actionBindings.oneButtonSpin_port0", PAD_NATIVE_BUTTON_INVALID},
+            ActionBindConfigVar{"actionBindings.oneButtonSpin_port1", PAD_NATIVE_BUTTON_INVALID},
+            ActionBindConfigVar{"actionBindings.oneButtonSpin_port2", PAD_NATIVE_BUTTON_INVALID},
+            ActionBindConfigVar{"actionBindings.oneButtonSpin_port3", PAD_NATIVE_BUTTON_INVALID},
+
+        },
     }
 };
 
@@ -508,6 +515,10 @@ void registerSettings() {
     Register(g_userSettings.actionBindings.turboSpeedButton[1]);
     Register(g_userSettings.actionBindings.turboSpeedButton[2]);
     Register(g_userSettings.actionBindings.turboSpeedButton[3]);
+    Register(g_userSettings.actionBindings.oneButtonSpin[0]);
+    Register(g_userSettings.actionBindings.oneButtonSpin[1]);
+    Register(g_userSettings.actionBindings.oneButtonSpin[2]);
+    Register(g_userSettings.actionBindings.oneButtonSpin[3]);
 }
 
 // Transient settings

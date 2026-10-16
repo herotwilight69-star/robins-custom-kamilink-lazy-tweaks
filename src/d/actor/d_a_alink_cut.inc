@@ -586,6 +586,8 @@ void daAlink_c::setSwordComboVoice() {
 }
 
 bool daAlink_c::checkCutTurnInputTrigger() {
+    if (dusk::getActionBindTrig(dusk::ActionBinds::ONE_BUTTON_SPIN, PAD_1))
+        return true;
     return swordSwingTrigger() && checkCutTurnInput();
 }
 
