@@ -238,7 +238,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: s
+        working-directory: 'W:\s'
 
     strategy:
       fail-fast: false
@@ -269,6 +269,10 @@ jobs:
           path: s
           fetch-depth: 0
           submodules: recursive
+
+      - name: Create short workspace drive
+        working-directory: s
+        run: subst W: "$env:GITHUB_WORKSPACE"
 
       - name: Enable long Git paths
         run: git config --global core.longpaths true
