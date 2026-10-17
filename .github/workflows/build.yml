@@ -11,6 +11,7 @@ on:
       - '*.md'
       - '*LICENSE'
       - 'docs/**'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('run-{0}', github.run_id) }}
@@ -293,3 +294,60 @@ jobs:
             build/install/mods/
             build/install/debug.7z
             build/install/sdk/
+
+  publish-release:
+    name: Package and publish custom release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-robin-')
+    needs:
+      - build-linux
+      - build-apple
+      - build-android
+      - build-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+
+      - name: Package platform builds
+        shell: bash
+        env:
+          RELEASE_TAG: ${{github.ref_name}}
+        run: |
+          set -euo pipefail
+          mkdir release
+          package_artifact() {
+            local artifact="$1"
+            local suffix="$2"
+            local source="artifacts/${artifact}"
+            local destination="${GITHUB_WORKSPACE}/release/Dusklight-${RELEASE_TAG}-${suffix}.zip"
+            if [[ ! -d "${source}" ]]; then
+              echo "Missing expected build artifact: ${artifact}" >&2
+              exit 1
+            fi
+            (cd "${source}" && zip -qr "${destination}" .)
+          }
+          versioned="dusklight-${RELEASE_TAG}"
+          package_artifact "${versioned}-linux-gcc-x86_64" "linux-x86_64"
+          package_artifact "${versioned}-linux-gcc-aarch64" "linux-arm64"
+          package_artifact "${versioned}-macos-appleclang-arm64" "macos-arm64"
+          package_artifact "${versioned}-macos-appleclang-x86_64" "macos-x86_64"
+          package_artifact "${versioned}-ios-appleclang-arm64" "ios-arm64"
+          package_artifact "${versioned}-android-arm64" "android-arm64"
+          package_artifact "${versioned}-win32-msvc-x86_64" "win32-x86_64"
+          package_artifact "${versioned}-win32-msvc-arm64" "win32-arm64"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{github.token}}
+          RELEASE_TAG: ${{github.ref_name}}
+        run: |
+          gh release create "$RELEASE_TAG" release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Robin's Custom Kamilink Lazy Tweaks $RELEASE_TAG" \
+            --prerelease \
+            --notes "Custom Dusklight build with Robin's compatibility APIs and services. Windows updates are installed from the matching release package."

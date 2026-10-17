@@ -14,6 +14,10 @@ Dusklight is a reverse-engineered reimplementation of Twilight Princess.
 
 It aims to be as accurate as possible to the original while also providing new options, enhancements, and tools to customize your experience.
 
+## Robin's Custom Kamilink build
+
+This is an unofficial public build maintained by Robin. It adds custom compatibility APIs and services and tracks upstream Dusklight through a scheduled GitHub Actions workflow that opens reviewable sync pull requests. Publishing a `v*-robin-*` tag builds platform packages and a prerelease; the in-app updater installs the matching Windows package and preserves the `data` folder.
+
 > [!IMPORTANT]
 > Dusklight's official website is https://twilitrealm.dev/, any other website is not affiliated and may be promoting AI-generated misinformation.
 

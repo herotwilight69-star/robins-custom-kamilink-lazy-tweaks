@@ -7,8 +7,8 @@ namespace dusk {
     inline constexpr borealis::AppInfo AppInfo{
         .orgName = "TwilitRealm",
         .appName = "Dusklight",
-        .githubOwner = "TwilitRealm",
-        .githubRepo = "dusklight",
+        .githubOwner = "herotwilight69-star",
+        .githubRepo = "robins-custom-kamilink-lazy-tweaks",
         .discordApplicationId = "1495632471994405035",
     };
 

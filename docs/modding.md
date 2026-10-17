@@ -38,13 +38,16 @@ Every mod starts with a single file, a `mod.json`:
   "version": "1.0.0",
   "author": "Your Name",
   "description": "A short description shown in the mod manager.",
+  "load_priority": 0,
   "icon": "res/icon.png",
   "banner": "res/banner.png"
 }
 ```
 
 `id` is required: a unique, stable identifier (reverse-DNS style; periods, underscores, and lowercase alphanumerics).
-Everything else is optional but recommended.
+Everything else is optional but recommended. `load_priority` is a signed 32-bit integer that defaults to `0`.
+Among mods whose service dependencies are ready, higher values are initialized later. Required service dependencies
+still take precedence over load priority.
 
 `icon` and `banner` are bundle paths to PNG images that display in the in-game mod manager and mod website. A square
 icon (1:1), and a banner (~3.5:1, minimum 800px width). If omitted, `res/icon.png` and `res/banner.png` are used

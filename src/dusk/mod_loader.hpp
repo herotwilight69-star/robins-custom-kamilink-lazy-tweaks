@@ -6,6 +6,7 @@
 #include "mods/api.h"
 #include "mods/runtime.h"
 
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -74,6 +75,7 @@ struct ModMetadata {
     std::string description;
     std::string iconPath;
     std::string bannerPath;
+    int32_t loadPriority = 0;
 };
 
 struct ModSearchDir {

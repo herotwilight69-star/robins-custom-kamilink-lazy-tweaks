@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <charconv>
+#include <limits>
 #include <stdexcept>
 #include <utility>
 
@@ -102,6 +103,29 @@ std::optional<DelegatedModRuntime> parse_runtime(const nlohmann::json& manifest)
     return result;
 }
 
+int32_t parse_load_priority(const nlohmann::json& manifest) {
+    const auto field = manifest.find("load_priority");
+    if (field == manifest.end()) {
+        return 0;
+    }
+    if (!field->is_number_integer() && !field->is_number_unsigned()) {
+        throw InvalidModDataException("load_priority must be a 32-bit integer");
+    }
+
+    int64_t value = 0;
+    try {
+        value = field->get<int64_t>();
+    } catch (const nlohmann::json::exception&) {
+        throw InvalidModDataException("load_priority must be a 32-bit integer");
+    }
+    if (value < std::numeric_limits<int32_t>::min() ||
+        value > std::numeric_limits<int32_t>::max())
+    {
+        throw InvalidModDataException("load_priority must be a 32-bit integer");
+    }
+    return static_cast<int32_t>(value);
+}
+
 }  // namespace
 
 LoadedManifest load_manifest(const std::filesystem::path& modPath, ModBundle& bundle) {
@@ -147,6 +171,7 @@ LoadedManifest load_manifest(const std::filesystem::path& modPath, ModBundle& bu
                 std::move(metaDescription),
                 std::move(iconPath),
                 std::move(bannerPath),
+                parse_load_priority(j),
             },
         .runtime = parse_runtime(j),
     };

@@ -132,14 +132,20 @@ void sort_mods(std::vector<std::unique_ptr<LoadedMod>>& mods) {
 
     while (order.size() < count) {
         // Always take the lowest unplaced scan index that is ready, keeping the
-        // final order as close to scan (filename) order as the graph allows.
+        // scan order as a stable tie-breaker after explicit load priority.
         const auto ready = [&]() -> size_t {
+            size_t selected = count;
             for (size_t i = 0; i < count; ++i) {
                 if (!placed[i] && indegree[i] == 0) {
-                    return i;
+                    if (selected == count ||
+                        mods[i]->metadata.loadPriority <
+                            mods[selected]->metadata.loadPriority)
+                    {
+                        selected = i;
+                    }
                 }
             }
-            return count;
+            return selected;
         }();
         if (ready < count) {
             place(ready);

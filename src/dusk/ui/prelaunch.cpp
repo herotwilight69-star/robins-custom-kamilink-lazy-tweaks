@@ -9,6 +9,7 @@
 #include "dusk/main.h"
 #include "dusk/mod_loader.hpp"
 #include "dusk/settings.h"
+#include "app_updater.hpp"
 #include "dusk/ui/format.hpp"
 #include "dusk/ui/menu_bar.hpp"
 #include "mod_updates.hpp"
@@ -57,7 +58,7 @@ const Rml::String kDocumentSource = R"RML(
     <content id="root" open>
         <menu>
             <hero class="intro-item delay-0">
-                <eyebrow><studio-name>Twilit Realm</studio-name> presents</eyebrow>
+                <eyebrow><studio-name>Robin's Custom Kamilink Lazy Tweaks</studio-name></eyebrow>
                 <img src="res/logo.png" />
             </hero>
             <menu-list id="menu-list" />
@@ -202,7 +203,9 @@ void begin_update_check() {
     if (sUpdateCheck || sUpdateCheckResult.has_value()) {
         return;
     }
-    sUpdateCheck = borealis::update::check_latest_github_release(AppInfo);
+    borealis::update::Options options;
+    options.includePrereleases = true;
+    sUpdateCheck = borealis::update::check_latest_github_release(AppInfo, options);
 }
 
 std::optional<borealis::update::Result> take_finished_update_check() {
@@ -238,6 +241,38 @@ void open_update_release() {
     if (!SDL_OpenURL(url.c_str())) {
         PrelaunchLog.warn("Failed to open update URL '{}': {}", url, SDL_GetError());
     }
+}
+
+void activate_update_download() {
+    if (!sUpdateCheckResult.has_value() ||
+        sUpdateCheckResult->status != borealis::update::Status::UpdateAvailable)
+    {
+        return;
+    }
+
+#if defined(_WIN32)
+#if defined(_M_ARM64)
+    constexpr std::string_view architecture = "arm64";
+#else
+    constexpr std::string_view architecture = "x86_64";
+#endif
+    const std::string expectedAsset =
+        fmt::format("Dusklight-{}-win32-{}.zip", sUpdateCheckResult->latest.tagName, architecture);
+    const auto asset = std::ranges::find(
+        sUpdateCheckResult->latest.assets, expectedAsset, &borealis::update::Asset::name);
+    if (asset == sUpdateCheckResult->latest.assets.end()) {
+        app_update::show_error(fmt::format(
+            "This release does not include the Windows {} update package.", architecture));
+        return;
+    }
+
+    std::string error;
+    if (!app_update::begin(asset->browserDownloadUrl, asset->digest, error)) {
+        app_update::show_error(std::move(error));
+    }
+#else
+    open_update_release();
+#endif
 }
 
 std::string get_error_msg(iso::ValidationError error) {
@@ -867,12 +902,12 @@ Prelaunch::Prelaunch() : Document(kDocumentSource, false, DocumentScope::Prelaun
 
     if (mUpdateDownload != nullptr) {
         listen(mUpdateDownload, Rml::EventId::Click, [](Rml::Event& event) {
-            open_update_release();
+            activate_update_download();
             event.StopPropagation();
         });
         listen(mUpdateDownload, Rml::EventId::Keydown, [](Rml::Event& event) {
             if (map_nav_event(event) == NavCommand::Confirm) {
-                open_update_release();
+                activate_update_download();
                 event.StopPropagation();
             }
         });
@@ -1017,6 +1052,8 @@ void Prelaunch::hide(bool close) {
 }
 
 void Prelaunch::update() {
+    app_update::update();
+
     if (mModsButton) {
         mModsButton->set_disabled(!mods::ModLoader::instance().initialized());
         set_mod_update_badge(*mModsButton);
@@ -1140,11 +1177,39 @@ void Prelaunch::update() {
             mUpdateStatus->RemoveAttribute("state");
             set_text_content(mUpdateMessage, "");
         } else if (sUpdateCheckResult->status == borealis::update::Status::UpdateAvailable) {
-            mUpdateStatus->SetAttribute("state", "available");
-            set_text_content(mUpdateMessage, "Update available!");
+            const auto updateState = app_update::state();
+            const bool updateActionActive =
+                updateState == app_update::State::Downloading ||
+                updateState == app_update::State::Preparing ||
+                updateState == app_update::State::Ready ||
+                updateState == app_update::State::Failed;
+            mUpdateStatus->SetAttribute(
+                "state", updateActionActive ? "downloading" : "available");
+            set_text_content(mUpdateMessage,
+                updateActionActive ? app_update::message() : "Update available!");
+            if (mUpdateDownload != nullptr) {
+                if (updateState == app_update::State::Downloading ||
+                    updateState == app_update::State::Preparing ||
+                    updateState == app_update::State::Ready)
+                {
+                    mUpdateDownload->SetAttribute("disabled", "");
+                } else {
+                    mUpdateDownload->RemoveAttribute("disabled");
+                }
+            }
             if (mUpdateDownloadLabel != nullptr) {
-                set_text_content(mUpdateDownloadLabel,
-                    fmt::format("Download {}", update_release_label(sUpdateCheckResult->latest)));
+                if (updateState == app_update::State::Downloading) {
+                    set_text_content(mUpdateDownloadLabel, "Downloading...");
+                } else if (updateState == app_update::State::Preparing) {
+                    set_text_content(mUpdateDownloadLabel, "Preparing...");
+                } else if (updateState == app_update::State::Ready) {
+                    set_text_content(mUpdateDownloadLabel, "Close to Install");
+                } else if (updateState == app_update::State::Failed) {
+                    set_text_content(mUpdateDownloadLabel, "Retry Update");
+                } else {
+                    set_text_content(mUpdateDownloadLabel,
+                        fmt::format("Download {}", update_release_label(sUpdateCheckResult->latest)));
+                }
             }
         } else {
             mUpdateStatus->SetAttribute("state", "failed");

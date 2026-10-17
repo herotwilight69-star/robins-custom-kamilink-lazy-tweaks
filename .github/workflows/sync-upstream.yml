@@ -1,0 +1,61 @@
+name: Sync upstream
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Open upstream sync pull request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out custom branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Merge upstream main
+        id: merge
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/TwilitRealm/dusklight.git
+          git fetch --no-tags upstream main
+          upstream_sha="$(git rev-parse upstream/main)"
+          if git merge-base --is-ancestor upstream/main origin/main; then
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          branch="sync/upstream-${upstream_sha:0:12}"
+          git switch --create "$branch" origin/main
+          git merge --no-edit upstream/main
+          git push origin "HEAD:refs/heads/${branch}"
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+          echo "upstream_sha=${upstream_sha}" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update pull request
+        if: steps.merge.outputs.needed == 'true'
+        env:
+          GH_TOKEN: ${{github.token}}
+          SYNC_BRANCH: ${{steps.merge.outputs.branch}}
+          UPSTREAM_SHA: ${{steps.merge.outputs.upstream_sha}}
+        run: |
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$SYNC_BRANCH" --base main --state open --json number --jq '.[0].number // empty')"
+          if [[ -z "$existing" ]]; then
+            gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
+              --base main \
+              --head "$SYNC_BRANCH" \
+              --title "Sync upstream Dusklight ${UPSTREAM_SHA:0:12}" \
+              --body "This pull request merges the latest \`TwilitRealm/dusklight\` main branch into Robin's custom build. Review the changes and resolve any custom-service conflicts before merging."
+          else
+            echo "An upstream sync pull request is already open: #${existing}"
+          fi

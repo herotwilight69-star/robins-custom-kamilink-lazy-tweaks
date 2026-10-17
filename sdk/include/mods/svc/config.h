@@ -8,7 +8,7 @@
 
 #define CONFIG_SERVICE_ID DUSKLIGHT_SERVICE_ID_PREFIX "config"
 #define CONFIG_SERVICE_MAJOR 1u
-#define CONFIG_SERVICE_MINOR 0u
+#define CONFIG_SERVICE_MINOR 1u
 
 /* Handle for a config var registered by the calling mod. 0 is never a valid handle. */
 typedef uint64_t ConfigVarHandle;
@@ -98,6 +98,10 @@ typedef struct ConfigService {
     ModResult (*subscribe)(ModContext* ctx, ConfigVarHandle var, ConfigChangedFn callback,
         void* user_data, ConfigSubscriptionHandle* out_handle);
     ModResult (*unsubscribe)(ModContext* ctx, ConfigSubscriptionHandle handle);
+
+    /* Write a string config var registered by another enabled mod. */
+    ModResult (*set_string_for_mod)(
+        ModContext* ctx, const char* mod_id, const char* name, const char* value);
 } ConfigService;
 
 MOD_DECLARE_SERVICE(

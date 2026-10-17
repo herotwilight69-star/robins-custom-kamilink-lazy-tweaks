@@ -363,6 +363,10 @@ update-status[state=failed] {
     display: block;
 }
 
+update-status[state=downloading] {
+    display: flex;
+}
+
 update-status[state=available] {
     display: flex;
 }
@@ -380,7 +384,18 @@ update-status[state=available] {
     decorator: var(--menu-button-decorator);
 }
 
+#update-download:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
 update-status[state=available] #update-download {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+}
+
+update-status[state=downloading] #update-download {
     display: flex;
     align-items: center;
     gap: var(--space-2xs);
