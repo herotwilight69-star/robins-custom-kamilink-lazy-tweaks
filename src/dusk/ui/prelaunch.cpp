@@ -270,6 +270,21 @@ void activate_update_download() {
     if (!app_update::begin(asset->browserDownloadUrl, asset->digest, error)) {
         app_update::show_error(std::move(error));
     }
+#elif defined(__ANDROID__)
+    const std::string expectedAsset =
+        fmt::format("Dusklight-{}-android-arm64.apk", sUpdateCheckResult->latest.tagName);
+    const auto asset = std::ranges::find(
+        sUpdateCheckResult->latest.assets, expectedAsset, &borealis::update::Asset::name);
+    if (asset == sUpdateCheckResult->latest.assets.end() ||
+        !asset->browserDownloadUrl.starts_with("https://github.com/"))
+    {
+        app_update::show_error("This release does not include a secure Android arm64 APK.");
+        return;
+    }
+    if (!SDL_OpenURL(asset->browserDownloadUrl.c_str())) {
+        PrelaunchLog.warn("Failed to open Android update URL '{}': {}",
+            asset->browserDownloadUrl, SDL_GetError());
+    }
 #else
     open_update_release();
 #endif

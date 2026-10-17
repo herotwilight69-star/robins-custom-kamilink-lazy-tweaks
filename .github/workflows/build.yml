@@ -344,6 +344,8 @@ jobs:
           package_artifact "${versioned}-linux-gcc-aarch64" "linux-arm64"
           package_artifact "${versioned}-ios-appleclang-arm64" "ios-arm64"
           package_artifact "${versioned}-android-arm64" "android-arm64"
+          cp "artifacts/${versioned}-android-arm64/app-arm64-v8a-release-unsigned.apk" \
+            "release/Dusklight-${RELEASE_TAG}-android-arm64.apk"
           package_artifact "${versioned}-win32-msvc-x86_64" "win32-x86_64"
 
       - name: Publish GitHub release
