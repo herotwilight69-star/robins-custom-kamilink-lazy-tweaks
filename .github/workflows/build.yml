@@ -314,6 +314,8 @@ jobs:
             build/install/*.exe
             build/install/*.dll
             build/install/res/
+            build/install/mods/cosmetics.dusk
+            build/install/mods/luau_runtime.dusk
           # build/install/mods/
           # build/install/debug.7z
           # build/install/sdk/
