@@ -238,7 +238,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: 'W:\s'
+        working-directory: s
 
     strategy:
       fail-fast: false
@@ -295,10 +295,14 @@ jobs:
           vcpkg install freetype:${{matrix.vcpkg_arch}}-windows zstd:${{matrix.vcpkg_arch}}-windows
 
       - name: Configure CMake
-        run: cmake --preset x-windows-ci-${{matrix.preset}}
+        run: |
+          Set-Location W:\s
+          cmake --preset x-windows-ci-${{matrix.preset}}
 
       - name: Build
-        run: cmake --build --preset x-windows-ci-${{matrix.preset}}
+        run: |
+          Set-Location W:\s
+          cmake --build --preset x-windows-ci-${{matrix.preset}}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
