@@ -236,6 +236,10 @@ jobs:
     name: Build Windows (${{matrix.name}})
     runs-on: ${{matrix.runner}}
 
+    defaults:
+      run:
+        working-directory: s
+
     strategy:
       fail-fast: false
       matrix:
@@ -262,6 +266,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          path: s
           fetch-depth: 0
           submodules: recursive
 
@@ -296,12 +301,12 @@ jobs:
         with:
           name: dusklight-${{env.APP_VERSION}}-win32-msvc-${{matrix.artifact_arch}}
           path: |
-            build/install/*.exe
-            build/install/*.dll
-            build/install/res/
-            build/install/mods/
-            build/install/debug.7z
-            build/install/sdk/
+            s/build/install/*.exe
+            s/build/install/*.dll
+            s/build/install/res/
+            s/build/install/mods/
+            s/build/install/debug.7z
+            s/build/install/sdk/
 
   publish-release:
     name: Package and publish custom release
