@@ -13,6 +13,7 @@
 #include <atomic>
 #include <chrono>
 #include <cctype>
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -21,6 +22,7 @@
 #include <span>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 #include <thread>
 
 #if defined(_WIN32)
@@ -129,6 +131,18 @@ struct ExtractContext {
     std::ofstream* output = nullptr;
 };
 
+struct ArchiveInput {
+    borealis::io::RandomAccessFile file;
+
+    static size_t read(void* opaque, mz_uint64 offset, void* buffer, size_t size) {
+        auto& input = *static_cast<ArchiveInput*>(opaque);
+        std::error_code error;
+        const size_t count = input.file.read_at(
+            offset, {static_cast<std::byte*>(buffer), size}, error);
+        return error ? 0 : count;
+    }
+};
+
 size_t write_extract_chunk(void* opaque, mz_uint64, const void* bytes, size_t size) {
     auto& context = *static_cast<ExtractContext*>(opaque);
     context.output->write(static_cast<const char*>(bytes), static_cast<std::streamsize>(size));
@@ -137,9 +151,16 @@ size_t write_extract_chunk(void* opaque, mz_uint64, const void* bytes, size_t si
 
 void extract_archive(
     const std::filesystem::path& archivePath, const std::filesystem::path& payloadPath) {
+    auto opened = borealis::io::RandomAccessFile::open(archivePath);
+    if (opened.status != borealis::io::Status::Ok) {
+        throw std::runtime_error(opened.message);
+    }
+    ArchiveInput input{std::move(opened.file)};
+
     mz_zip_archive archive{};
-    const std::string archiveName = borealis::io::fs_path_to_string(archivePath);
-    if (!mz_zip_reader_init_file(&archive, archiveName.c_str(), 0)) {
+    archive.m_pRead = ArchiveInput::read;
+    archive.m_pIO_opaque = &input;
+    if (!mz_zip_reader_init(&archive, input.file.size(), 0)) {
         throw std::runtime_error("The downloaded update is not a readable ZIP package");
     }
     const auto closeArchive = [](mz_zip_archive* archiveToClose) {
