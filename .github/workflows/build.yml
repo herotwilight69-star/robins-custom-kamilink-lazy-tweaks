@@ -116,6 +116,21 @@ jobs:
           fetch-tags: true
           submodules: recursive
 
+      # Workaround for https://github.com/TwilitRealm/dusklight/issues/2752
+      # (actions/runner-images#14940): the image's Command Line Tools SDK is
+      # newer than Xcode's linker understands, so build macOS with the CLT
+      # toolchain instead.
+      - name: Use Command Line Tools toolchain
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          sudo xcode-select -s /Library/Developer/CommandLineTools
+          # DEVELOPER_DIR overrides xcode-select, so clear it if the image sets it
+          echo "DEVELOPER_DIR=" >> "$GITHUB_ENV"
+          xcode-select -p
+          xcrun --sdk macosx --show-sdk-path
+          clang --version
+
       - name: Install dependencies
         run: brew install cmake ninja
 
