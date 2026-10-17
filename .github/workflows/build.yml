@@ -90,14 +90,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: AppleClang macOS arm64
-            platform: macos
-            preset: x-macos-ci-arm64
-            artifact_name: macos-appleclang-arm64
-          - name: AppleClang macOS x86_64
-            platform: macos
-            preset: x-macos-ci-x86_64
-            artifact_name: macos-appleclang-x86_64
           - name: AppleClang iOS arm64
             platform: ios
             preset: x-ios-ci
@@ -117,14 +109,6 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest-stable
-
-      - name: Set stable macOS SDK
-        if: matrix.platform == 'macos'
-        run: |
-          developer_dir="$MD_APPLE_SDK_ROOT/Contents/Developer"
-          sudo xcode-select --switch "$developer_dir"
-          echo "DEVELOPER_DIR=$developer_dir" >> "$GITHUB_ENV"
-          echo "SDKROOT=$developer_dir/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: brew install cmake ninja
@@ -258,12 +242,6 @@ jobs:
             msvc_arch: amd64
             vcpkg_arch: x64
             artifact_arch: x86_64
-          - name: MSVC arm64
-            runner: windows-latest
-            preset: arm64-msvc
-            msvc_arch: amd64_arm64
-            vcpkg_arch: arm64
-            artifact_arch: arm64
           # - name: Clang x86_64
           #   runner: windows-latest
           #   preset: clang
@@ -364,12 +342,9 @@ jobs:
           versioned="dusklight-${RELEASE_TAG}"
           package_artifact "${versioned}-linux-gcc-x86_64" "linux-x86_64"
           package_artifact "${versioned}-linux-gcc-aarch64" "linux-arm64"
-          package_artifact "${versioned}-macos-appleclang-arm64" "macos-arm64"
-          package_artifact "${versioned}-macos-appleclang-x86_64" "macos-x86_64"
           package_artifact "${versioned}-ios-appleclang-arm64" "ios-arm64"
           package_artifact "${versioned}-android-arm64" "android-arm64"
           package_artifact "${versioned}-win32-msvc-x86_64" "win32-x86_64"
-          package_artifact "${versioned}-win32-msvc-arm64" "win32-arm64"
 
       - name: Publish GitHub release
         env:
