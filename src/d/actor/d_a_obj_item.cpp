@@ -242,6 +242,10 @@ int daItem_c::_daItem_create() {
         shape_angle.x = 0;
 
 #if TARGET_PC
+        // The append is only valid during creation, so latch it here
+        const fopAcM_prm_class* append = fopAcM_GetAppend(this);
+        mPrePlaced = append != NULL && append->mFromStageData;
+
         const u32 params = fopAcM_GetParam(this);
         mOriginalItemNo = params & 0xFF;
         mItemGiveTag = dusk::mods::item_give_tag_freestanding(daItem_prm::getItemBitNo(this));
@@ -269,7 +273,7 @@ int daItem_c::_daItem_create() {
     if (dusk::getSettings().game.noArrowDrops && isArrow(m_itemNo)) {
         return cPhs_ERROR_e;
     }
-    if (dusk::getSettings().game.noRupeeDrops && isRupee(m_itemNo)) {
+    if (dusk::getSettings().game.noRupeeDrops && isRupee(m_itemNo) && !isPrePlaced()) {
         return cPhs_ERROR_e;
     }
 #endif

@@ -342,6 +342,8 @@ public:
     static void setStopStatus(u32 status) { stopStatus = status; }
 
     static DUSK_GAME_DATA u32 stopStatus;
+    // True if spawned from stage/room actor data rather than created at runtime
+    bool mFromStageData;
 };  // Size: 0x568
 
 STATIC_ASSERT(sizeof(fopAc_ac_c) == 0x568);
