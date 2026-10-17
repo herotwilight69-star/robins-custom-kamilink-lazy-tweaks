@@ -272,7 +272,8 @@ jobs:
 
       - name: Create short workspace drive
         working-directory: s
-        run: subst W: "$env:GITHUB_WORKSPACE"
+        run: |
+          subst W: "$env:GITHUB_WORKSPACE"
 
       - name: Enable long Git paths
         run: git config --global core.longpaths true
