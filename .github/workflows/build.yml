@@ -120,7 +120,11 @@ jobs:
 
       - name: Set stable macOS SDK
         if: matrix.platform == 'macos'
-        run: echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
+        run: |
+          developer_dir="$MD_APPLE_SDK_ROOT/Contents/Developer"
+          sudo xcode-select --switch "$developer_dir"
+          echo "DEVELOPER_DIR=$developer_dir" >> "$GITHUB_ENV"
+          echo "SDKROOT=$developer_dir/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: brew install cmake ninja
