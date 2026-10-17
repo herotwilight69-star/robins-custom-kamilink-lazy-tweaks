@@ -116,15 +116,6 @@ jobs:
           fetch-tags: true
           submodules: recursive
 
-      - if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          # Keep the SDK paired with the active Xcode toolchain. The system's
-          # Command Line Tools SDK can be newer than that linker understands.
-          sdkroot="$(xcrun --sdk macosx --show-sdk-path)"
-          echo "SDKROOT=$sdkroot" >> "$GITHUB_ENV"
-          echo "Using macOS SDK: $sdkroot"
-
       - name: Install dependencies
         run: brew install cmake ninja
 
