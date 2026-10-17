@@ -118,6 +118,10 @@ jobs:
         with:
           xcode-version: latest-stable
 
+      - name: Set stable macOS SDK
+        if: matrix.platform == 'macos'
+        run: echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
+
       - name: Install dependencies
         run: brew install cmake ninja
 
