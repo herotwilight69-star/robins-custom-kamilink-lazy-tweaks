@@ -46,8 +46,20 @@ UserSettings g_userSettings = {
         .disableRupeeCutscenes {"game.disableRupeeCutscenes", false},
         .fastTransitions {"game.fastTransitions", false},
         .noSwordRecoil {"game.noSwordRecoil", false},
+        .noHitstop {"game.noHitstop", false},
         .damageMultiplier {"game.damageMultiplier", 1},
+        .swordMultiplier {"game.swordMultiplier", 100},
+        .wolfMultiplier {"game.wolfMultiplier", 100},
+        .noWolfJumpMeter {"game.noWolfJumpMeter", false},
+        .noMidnaChargeMeter {"game.noMidnaChargeMeter", false},
+        .bowMultiplier {"game.bowMultiplier", 100},
         .noHeartDrops {"game.noHeartDrops", false},
+        .heartDropRate {"game.heartDropRate", 100},
+        .noArrowDrops {"game.noArrowDrops", false},
+        .noRupeeDrops {"game.noRupeeDrops", false},
+        .halfMyShitIsGone {"game.halfMyShitIsGone", false},
+        .quarterDeathTax {"game.quarterDeathTax", false},
+        .deathRupeeTax {"game.deathRupeeTax", 0},
         .instantDeath {"game.instantDeath", false},
         .fastClimbing {"game.fastClimbing", false},
         .noMissClimbing {"game.noMissClimbing", false},
@@ -62,17 +74,42 @@ UserSettings g_userSettings = {
         .enhancedMapMenus {"game.enhancedMapMenus", false},
         .aimingReticle {"game.aimingReticle", false},
         .noHitStun {"game.noHitStun", false},
+        .sturdierWolfLink {"game.sturdierWolfLink", false},
+        .progressiveDefense {"game.progressiveDefense", false},
+        .enableSkillMeter {"game.enableSkillMeter", false},
+        .shieldUsesMeter {"game.shieldUsesMeter", false},
+        .alternateParry {"game.alternateParry", false},
+        .combinedParry {"game.combinedParry", false},
+        .meterSpin {"game.meterSpin", false},
+        .dodgeCancel {"game.dodgeCancel", false},
+        .jumpStrikeCancel {"game.jumpStrikeCancel", false},
+        .progressiveCombos {"game.progressiveCombos", false},
+        .enableCrouchShield {"game.enableCrouchShield", false},
+        .enableManualShield {"game.enableManualShield", false},
 
         // Preferences
         .enableMirrorMode {"game.enableMirrorMode", false},
         .minimalHUD {"game.minimalHUD", false},
         .hudScale {"game.hudScale", 1.0f},
+        .zItemScale {"game.zItemScale", 1.0f},
+        .hideZButtonAmmo {"game.hideZButtonAmmo", false},
+        .hideMidnaIcon {"game.hideMidnaIcon", false},
         .pauseOnFocusLost {"game.pauseOnFocusLost", false},
         .enableLinkDollRotation {"game.enableLinkDollRotation", false},
         .enableAchievementToasts {"game.enableAchievementToasts", true},
         .enableControllerToasts {"game.enableControllerToasts", true},
         .enableDiscordPresence {"game.enableDiscordPresence", true},
         .menuScalingMode {"game.menuScalingMode", MenuScaling::Wii},
+        .wolfGear {"game.wolfGear", false},
+        .shadowMidna {"game.shadowMidna", false},
+        .invisibleMidna {"game.invisibleMidna", false},
+        .alwaysLightSword {"game.alwaysLightSword", LightSwordMode::OFF},
+        .swordTrail {"game.swordTrail", false},
+        .suppressButtonPrompts {"game.suppressButtonPrompts", false},
+        .midnaPositionX {"game.midnaPositionX", 0.0f},
+        .midnaPositionY {"game.midnaPositionY", 0.0f},
+        .skillMeterXPos {"game.skillMeterXPos", 0.0f},
+        .skillMeterYPos {"game.skillMeterYPos", 0.0f},
 
         // Graphics
         .bloomMode {"game.bloomMode", BloomMode::Dusk},
@@ -92,6 +129,8 @@ UserSettings g_userSettings = {
         // Audio
         .noLowHpSound {"game.noLowHpSound", false},
         .midnasLamentNonStop {"game.midnasLamentNonStop", false},
+        .noBattleMusic {"game.noBattleMusic", false},
+        .muteBGM {"game.muteBGM", false},
 
         // Input
         .enableGyroAim {"game.enableGyroAim", false},
@@ -154,6 +193,7 @@ UserSettings g_userSettings = {
         .invincibleEnemies {"game.invincibleEnemies", false},
         .easyQuickSpin {"game.easyQuickSpin", false},
         .infiniteEponaStamina {"game.infiniteEponaStamina", false},
+        .insulatedZoraArmor {"game.insulatedZoraArmor", false},
 
         // Technical
         .restoreWiiGlitches {"game.restoreWiiGlitches", false},
@@ -226,6 +266,13 @@ UserSettings g_userSettings = {
             ActionBindConfigVar{"actionBindings.turboButton_port2", PAD_NATIVE_BUTTON_INVALID},
             ActionBindConfigVar{"actionBindings.turboButton_port3", PAD_NATIVE_BUTTON_INVALID},
         },
+        .oneButtonSpin {
+            ActionBindConfigVar{"actionBindings.oneButtonSpin_port0", PAD_NATIVE_BUTTON_INVALID},
+            ActionBindConfigVar{"actionBindings.oneButtonSpin_port1", PAD_NATIVE_BUTTON_INVALID},
+            ActionBindConfigVar{"actionBindings.oneButtonSpin_port2", PAD_NATIVE_BUTTON_INVALID},
+            ActionBindConfigVar{"actionBindings.oneButtonSpin_port3", PAD_NATIVE_BUTTON_INVALID},
+
+        },
     }
 };
 
@@ -282,8 +329,20 @@ void registerSettings() {
     Register(g_userSettings.game.disableRupeeCutscenes);
     Register(g_userSettings.game.fastTransitions);
     Register(g_userSettings.game.noSwordRecoil);
+    Register(g_userSettings.game.noHitstop);
     Register(g_userSettings.game.damageMultiplier);
+    Register(g_userSettings.game.swordMultiplier);
+    Register(g_userSettings.game.wolfMultiplier);
+    Register(g_userSettings.game.noWolfJumpMeter);
+    Register(g_userSettings.game.noMidnaChargeMeter);
+    Register(g_userSettings.game.bowMultiplier);
     Register(g_userSettings.game.noHeartDrops);
+    Register(g_userSettings.game.heartDropRate);
+    Register(g_userSettings.game.noArrowDrops);
+    Register(g_userSettings.game.noRupeeDrops);
+    Register(g_userSettings.game.halfMyShitIsGone);
+    Register(g_userSettings.game.quarterDeathTax);
+    Register(g_userSettings.game.deathRupeeTax);
     Register(g_userSettings.game.instantDeath);
     Register(g_userSettings.game.fastClimbing);
     Register(g_userSettings.game.fastTears);
@@ -297,6 +356,18 @@ void registerSettings() {
     Register(g_userSettings.game.enhancedMapMenus);
     Register(g_userSettings.game.aimingReticle);
     Register(g_userSettings.game.noHitStun);
+    Register(g_userSettings.game.sturdierWolfLink);
+    Register(g_userSettings.game.progressiveDefense);
+    Register(g_userSettings.game.enableSkillMeter);
+    Register(g_userSettings.game.shieldUsesMeter);
+    Register(g_userSettings.game.alternateParry);
+    Register(g_userSettings.game.combinedParry);
+    Register(g_userSettings.game.meterSpin);
+    Register(g_userSettings.game.dodgeCancel);
+    Register(g_userSettings.game.jumpStrikeCancel);
+    Register(g_userSettings.game.progressiveCombos);
+    Register(g_userSettings.game.enableCrouchShield);
+    Register(g_userSettings.game.enableManualShield);
     Register(g_userSettings.game.enableMirrorMode);
     Register(g_userSettings.game.invertCameraXAxis);
     Register(g_userSettings.game.invertCameraYAxis);
@@ -310,6 +381,9 @@ void registerSettings() {
     Register(g_userSettings.game.touchCameraYSensitivity);
     Register(g_userSettings.game.minimalHUD);
     Register(g_userSettings.game.hudScale);
+    Register(g_userSettings.game.zItemScale);
+    Register(g_userSettings.game.hideZButtonAmmo);
+    Register(g_userSettings.game.hideMidnaIcon);
     Register(g_userSettings.game.pauseOnFocusLost,
         [](const bool& value, const bool&) { aurora_set_pause_on_focus_lost(value); });
     Register(g_userSettings.game.enableDiscordPresence);
@@ -339,6 +413,8 @@ void registerSettings() {
     Register(g_userSettings.game.noMissClimbing);
     Register(g_userSettings.game.noLowHpSound);
     Register(g_userSettings.game.midnasLamentNonStop);
+    Register(g_userSettings.game.noBattleMusic);
+    Register(g_userSettings.game.muteBGM);
     Register(g_userSettings.game.enableTurboKeybind);
     Register(g_userSettings.game.enableResetKeybind);
     Register(g_userSettings.game.speedrunMode);
@@ -368,6 +444,7 @@ void registerSettings() {
     Register(g_userSettings.game.easyQuickSpin);
     Register(g_userSettings.game.infiniteEponaStamina);
 
+    Register(g_userSettings.game.insulatedZoraArmor);
     Register(g_userSettings.game.enableFrameInterpolation);
     Register(g_userSettings.game.enableGyroAim);
     Register(g_userSettings.game.enableGyroRollgoal);
@@ -396,6 +473,16 @@ void registerSettings() {
     Register(g_userSettings.game.enableLED[2]);
     Register(g_userSettings.game.enableLED[3]);
     Register(g_userSettings.game.swapDirectSelect);
+    Register(g_userSettings.game.wolfGear);
+    Register(g_userSettings.game.shadowMidna);
+    Register(g_userSettings.game.invisibleMidna);
+    Register(g_userSettings.game.alwaysLightSword);
+    Register(g_userSettings.game.swordTrail);
+    Register(g_userSettings.game.suppressButtonPrompts);
+    Register(g_userSettings.game.midnaPositionX);
+    Register(g_userSettings.game.midnaPositionY);
+    Register(g_userSettings.game.skillMeterXPos);
+    Register(g_userSettings.game.skillMeterYPos);
 
     Register(g_userSettings.backend.isoPath);
     Register(g_userSettings.backend.isoVerification);
@@ -432,6 +519,10 @@ void registerSettings() {
     Register(g_userSettings.actionBindings.turboSpeedButton[1]);
     Register(g_userSettings.actionBindings.turboSpeedButton[2]);
     Register(g_userSettings.actionBindings.turboSpeedButton[3]);
+    Register(g_userSettings.actionBindings.oneButtonSpin[0]);
+    Register(g_userSettings.actionBindings.oneButtonSpin[1]);
+    Register(g_userSettings.actionBindings.oneButtonSpin[2]);
+    Register(g_userSettings.actionBindings.oneButtonSpin[3]);
 }
 
 // Transient settings

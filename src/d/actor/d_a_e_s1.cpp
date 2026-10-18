@@ -303,7 +303,8 @@ static void damage_check(e_s1_class* i_this) {
                 i_this->mAtInfo.mpCollider = i_this->mCcSph[i].GetTgHitObj();
 
                 if (player->getCutType() != daPy_py_c::CUT_TYPE_WOLF_B_LEFT && player->getCutType() != daPy_py_c::CUT_TYPE_WOLF_B_RIGHT &&
-                    i_this->mAtInfo.mpCollider->ChkAtType(AT_TYPE_WOLF_ATTACK))
+                    player->getCutType() != daPy_py_c::CUT_TYPE_WOLF_B_BACK && player->getCutType() != daPy_py_c::CUT_TYPE_WOLF_B_FRONT
+                    && i_this->mAtInfo.mpCollider->ChkAtType(AT_TYPE_WOLF_ATTACK))
                 {
                     if (!player->onWolfEnemyHangBite(a_this)) {
                         return;
@@ -346,12 +347,13 @@ static void damage_check(e_s1_class* i_this) {
                     cc_at_check(a_this, &i_this->mAtInfo);
 
                     if (i_this->mAtInfo.mpCollider->ChkAtType(
-                            AT_TYPE_MIDNA_LOCK | AT_TYPE_10000000 | AT_TYPE_WOLF_CUT_TURN |
-                            AT_TYPE_WOLF_ATTACK))
+                            AT_TYPE_MIDNA_LOCK | AT_TYPE_10000000 | AT_TYPE_WOLF_CUT_TURN))
                     {
-                        i_this->mHitInvincibilityTimer = 20;
-                    } else {
                         i_this->mHitInvincibilityTimer = 10;
+                    } else if (i_this->mAtInfo.mpCollider->ChkAtType(AT_TYPE_WOLF_ATTACK)) {
+                        i_this->mHitInvincibilityTimer = 5;
+                    } else {
+                        i_this->mHitInvincibilityTimer = 8;
                     }
 
                     if (i_this->mAtInfo.mAttackPower < 20) {

@@ -3089,10 +3089,40 @@ static void* daMidna_searchNpc(fopAc_ac_c* i_actor, void* o_far) {
     return NULL;
 }
 
+#if TARGET_PC
+// True when FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE is being forced by the Shadow Midna setting
+// rather than by an actual demo
+bool daMidna_c::checkShadowMidnaSettingForce() const {
+    return dusk::getSettings().game.shadowMidna && daAlink_getAlinkActorClass()->checkWolf()
+        && mDemoType == 0 && !checkMidnaTired() && checkShadowModelDrawDemoForce();
+}
+#endif
+
 void daMidna_c::setMidnaNoDrawFlg() {
+#if TARGET_PC
+    daAlink_c* link = daAlink_getAlinkActorClass();
+    bool canMakeInvisible = false;
+
+    if (dusk::getSettings().game.shadowMidna) {
+        shadowMidnaWasOn = true;
+        if (link->checkWolf() && mDemoType == 0 && !checkMidnaTired()) {
+            onStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE);
+        }
+    }
+    if (!dusk::getSettings().game.shadowMidna && shadowMidnaWasOn) {
+        shadowMidnaWasOn = false;
+        if (checkStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE)) {
+            offStateFlg1(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE);
+        }
+    }
+    if (dusk::getSettings().game.invisibleMidna && link->checkWolf()
+        && mDemoType == 0 && !checkMidnaTired()) {
+        canMakeInvisible = true;
+    }
+#endif
     if (
         (!checkStateFlg1((daMidna_FLG1)(FLG1_SHADOW_MODEL_DRAW_DEMO_FORCE | FLG1_UNK_1)) &&
-        (!checkAppear() || !checkMidnaRealBody())) || daAlink_c::checkCloudSea()
+        (!checkAppear() || !checkMidnaRealBody())) || daAlink_c::checkCloudSea() || canMakeInvisible
     ) {
         onStateFlg0(FLG0_NO_DRAW);
     } else if (

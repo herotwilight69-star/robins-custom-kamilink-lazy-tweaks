@@ -320,6 +320,15 @@ void Z2SoundObjMgr::searchEnemy() {
         setGhostEnemyState(0);
     }
 
+#if TARGET_PC
+    bool suppressBattleBgm =
+        dusk::getSettings().game.noBattleMusic &&
+        !(Z2GetSceneMgr()->isInDarkness() || twilightBattle_ != 0 ||
+          Z2GetSeqMgr()->getSubBgmID() == Z2BGM_BATTLE_TWILIGHT);
+#else
+    bool suppressBattleBgm = false;
+#endif
+
     if (subBgmType == 1) {
         if (field_0x14 != 0) {
             Z2GetSeqMgr()->changeSubBgmStatus(1);
@@ -339,6 +348,12 @@ void Z2SoundObjMgr::searchEnemy() {
             Z2GetSeqMgr()->changeBgmStatus(0);
         }
     } else if (!bVar7) {
+        if (suppressBattleBgm) {
+            Z2GetSeqMgr()->setBattleSearched(false);
+            Z2GetSeqMgr()->setBattleDistState(3);
+            return;
+        }
+
         Z2GetSeqMgr()->setBattleSearched(local_96);
 
         if (field_0x14 != 0) {

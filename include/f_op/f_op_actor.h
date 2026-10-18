@@ -75,6 +75,10 @@ enum fopAc_Condition_e {
     fopAcCnd_NOEXEC_e = 0x02,
     fopAcCnd_NODRAW_e = 0x04,
     fopAcCnd_INIT_e = 0x08,
+#if TARGET_PC
+    // Actor has executed once on the title screen and is now held in place
+    fopAcCnd_TITLE_FROZEN_e = 0x80,
+#endif
 };
 
 enum fopAc_Cull_e {
@@ -338,6 +342,8 @@ public:
     static void setStopStatus(u32 status) { stopStatus = status; }
 
     static DUSK_GAME_DATA u32 stopStatus;
+    // True if spawned from stage/room actor data rather than created at runtime
+    bool mFromStageData;
 };  // Size: 0x568
 
 STATIC_ASSERT(sizeof(fopAc_ac_c) == 0x568);

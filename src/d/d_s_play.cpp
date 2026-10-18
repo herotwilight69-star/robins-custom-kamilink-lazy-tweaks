@@ -40,6 +40,7 @@
 #include "JSystem/JKernel/JKRAramArchive.h"
 
 #if TARGET_PC
+#include "dusk/settings.h"
 #include "dusk/autosave.h"
 #include "dusk/memory.h"
 #include "dusk/mods/item.hpp"
@@ -100,6 +101,10 @@ DUSK_GAME_DATA s8 dScnPly_c::pauseTimer;
 
 DUSK_GAME_DATA s8 dScnPly_c::nextPauseTimer;
 
+#if TARGET_PC
+DUSK_GAME_DATA bool dScnPly_c::sIsOpening;
+#endif
+
 #if DEBUG
 u8 dScnPly_c::debugPause;
 #endif
@@ -142,6 +147,15 @@ void dScnPly_preLoad_HIO_c::genMessage(JORMContext* mctx) {
 #endif
 
 s8 dScnPly_c::calcPauseTimer() {
+#if TARGET_PC
+    if (dusk::getSettings().game.noHitstop && !(dusk::getSettings().game.debugFlyCamLockEvents
+        || dusk::getSettings().game.debugFlyCam)) {
+
+        pauseTimer = 0;
+        nextPauseTimer = 0;
+        return 0;
+    }
+#endif
     if (nextPauseTimer != 0) {
         pauseTimer = nextPauseTimer;
         nextPauseTimer = 0;
@@ -855,6 +869,10 @@ static int dScnPly_Delete(dScnPly_c* i_this) {
     }
     #endif
 
+    #if TARGET_PC
+    dScnPly_c::sIsOpening = false;
+    #endif
+
     daSus_c::reset();
     dMpath_c::remove();
     dTres_c::remove();
@@ -1504,6 +1522,8 @@ static int phase_4(dScnPly_c* i_this) {
 #endif
     JUT_ASSERT(2709, heap2 != NULL);
     dComIfGp_setMsgExpHeap(heap2);
+
+    IF_DUSK(dScnPly_c::sIsOpening = fpcM_GetName(i_this) == fpcNm_OPENING_SCENE_e);
 
     if (fpcM_GetName(i_this) == fpcNm_OPENING_SCENE_e) {
         fopAcM_create(fpcNm_TITLE_e, 0, NULL, -1, NULL, NULL, -1);

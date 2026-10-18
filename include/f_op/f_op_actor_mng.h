@@ -80,6 +80,8 @@ struct fopAcM_prm_class {
 #if TARGET_PC
     u32 mItemGiveTag;
     u8 mItemGiveOriginalNo;
+    // Set when the actor is spawned from stage/room actor data (dStage_actorCreate)
+    bool mFromStageData;
 #endif
 };
 

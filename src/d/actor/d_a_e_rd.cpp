@@ -227,13 +227,13 @@ enum Joint {
 
 daE_RD_HIO_c::daE_RD_HIO_c() {
     no = -1;
-    model_size = 1.2f;
+    model_size = 1.32f;
     leader_size_ratio = 1.2f;
-    movement_speed = 3.5f;
-    dash_speed = 14.0f;
-    battle_init_range = 250.0f;
-    attack_init_range = 300.0f;
-    swing_speed = 1.1f;
+    movement_speed = 7.0f;
+    dash_speed = 21.0f;
+    battle_init_range = 350.0f;
+    attack_init_range = 400.0f;
+    swing_speed = 2.2f;
     command_to_ready_stance = 60;
     attack_range = 1300.0f;
     mounted_launch_distance = 2000.0f;
@@ -1275,7 +1275,7 @@ static void e_rd_fight_run(e_rd_class* i_this) {
             attack_flag = false;
         }
     } else {
-        i_this->attack_timer = 35;
+        i_this->attack_timer = 150;
     }
 
     f32 dash_speed;
@@ -1311,7 +1311,7 @@ static void e_rd_fight_run(e_rd_class* i_this) {
 
             case -10:
                 anm_init(i_this, BCK_RD_WAIT01, 7.0f, 2, 1.0f);
-                i_this->timer[1] = cM_rndF(10.0f) + 15.0f;
+                i_this->timer[1] = cM_rndF(5.0f) + 3.5f;
                 i_this->mode = -9;
                 break;
 
@@ -1370,7 +1370,7 @@ static void e_rd_fight_run(e_rd_class* i_this) {
 
         if (i_this->mode < 5 && move_gake_check(i_this, 100.0f)) {
             i_this->mode = 5;
-            i_this->timer[3] = cM_rndF(15.0f) + 30.0f;
+            i_this->timer[3] = cM_rndF(7.0f) + 15.0f;
             anm_init(i_this, BCK_RD_WAIT01, 5.0f, 2, 1.0f);
         }
 
@@ -1405,7 +1405,7 @@ static void e_rd_fight_run(e_rd_class* i_this) {
                 i_this->damage_timer = 20;
             } else if (i_this->armament_flag == 0 && i_this->dis < l_HIO.attack_init_range && i_this->timer[2] == 0) {
                 i_this->timer[2] = cM_rndF(20.0f) + 20.0f;
-                f32 rnd = 0.5f;
+                f32 rnd = 0.75f;
                 if (cM_rndF(1.0f) < rnd) {
                     i_this->action = ACTION_FIGHT;
                     i_this->mode = 0;
@@ -1462,20 +1462,53 @@ static void e_rd_fight(e_rd_class* i_this) {
             }
 
             i_this->mode = 1;
-            i_this->timer[1] = 5;
+            i_this->timer[1] = 15;
             i_this->sound.startCreatureVoice(Z2SE_EN_RD_V_WAND_ATTACK, -1);
             break;
         }
 
         case 1: {
             if (i_this->timer[1] != 0) {
-                cLib_addCalcAngleS2(&enemy->current.angle.y, i_this->angleY, 4, 0x800);
+                cLib_addCalcAngleS2(&enemy->current.angle.y, i_this->angleY, 2, 0x800);
             }
 
             if (frame == 30) {
                 i_this->anm_p->setFrame(0.0f);
             } else if (i_this->timer[0] == 0) {
                 anm_init(i_this, BCK_RD_ATTACK01, 2.0f, 0, l_HIO.swing_speed);
+                i_this->anm_p->setFrame(30.0f);
+                i_this->mode = 2;
+            }
+            break;
+        }
+        // case 4 and 5: "retaliation" branch
+        case 4: {
+            anm_init(i_this, BCK_RD_ATTACK01, TREG_F(14) + 6.0f, 0, 1.5f);
+
+            if (l_HIO.field_0x38 == 0) {
+                i_this->timer[0] = 25;
+            } else if (l_HIO.field_0x38 == 1) {
+                // in practice, only goes in here
+                i_this->timer[0] = 10;
+            } else if (l_HIO.field_0x38 == 2) {
+                i_this->timer[0] = 10;
+            }
+
+            i_this->mode = 5;
+            i_this->timer[1] = 15;
+            i_this->sound.startCreatureVoice(Z2SE_EN_RD_V_WAND_ATTACK, -1);
+            break;
+        }
+
+        case 5: {
+            if (i_this->timer[1] != 0) {
+                cLib_addCalcAngleS2(&enemy->current.angle.y, i_this->angleY, 2, 0x800);
+            }
+
+            if (frame == 30) {
+                i_this->anm_p->setFrame(0.0f);
+            } else if (i_this->timer[0] == 0) {
+                anm_init(i_this, BCK_RD_ATTACK01, 2.0f, 0, 2.20f);
                 i_this->anm_p->setFrame(30.0f);
                 i_this->mode = 2;
             }
@@ -2857,7 +2890,7 @@ static void e_rd_damage(e_rd_class* i_this) {
             i_this->timer[1] = 16;
             i_this->field_0xafa = 1;
         }
-    } else if (enemy->checkCutDownHitFlg()) {
+    } if (enemy->checkCutDownHitFlg()) {
         enemy->offCutDownHitFlg();
         i_this->mode = 3;
         i_this->timer[0] = 100;
@@ -2977,7 +3010,9 @@ static void e_rd_damage(e_rd_class* i_this) {
             cLib_addCalcAngleS2(&i_this->jump_angle.x, -0x4000, 1, 0x300 + BREG_S(4));
 
             if (i_this->Bgc.ChkGroundHit()) {
-                if (actor->health > 0 && daPy_py_c::checkNowWolf() == 0) {
+                // Old logic that only sets down flag if Link is human
+                // if (actor->health > 0 && daPy_py_c::checkNowWolf() == 0) {
+                if (actor->health > 0) {
                     enemy->onDownFlg();
                 }
 
@@ -3359,14 +3394,14 @@ static void e_rd_stand(e_rd_class* i_this) {
             if (i_this->timer[0] == 0) {
                 anm_init(i_this, BCK_RD_KYORO2, 10.0f, 2, 1.0f);
                 i_this->mode = 1;
-                i_this->timer[0] = cM_rndF(40.0f) + 60.0f;
+                i_this->timer[0] = cM_rndF(20.0f) + 30.0f;
             }
             break;
 
         case 1:
             if (i_this->timer[0] == 0) {
                 anm_init(i_this, BCK_RD_WAIT01, 10.0f, 2, 1.0f);
-                i_this->timer[0] = cM_rndF(100.0f) + 100.0f;
+                i_this->timer[0] = cM_rndF(50.0f) + 50.0f;
                 i_this->mode = 0;
             }
             break;
@@ -4152,7 +4187,7 @@ static void big_damage(e_rd_class* i_this) {
     }
 
     i_this->damage_flag = 0;
-    i_this->damage_timer = 1000;
+    i_this->damage_timer = 500;
 
 }
 
@@ -4170,14 +4205,14 @@ static void small_damage(e_rd_class* i_this, int param_2) {
     if (param_2 == 0) {
         s16 range = enemy->shape_angle.y - i_this->angleY;
         if (range < -0x4000 || range > 0x4000) {
-                anm_init(i_this, BCK_RD_DAMAGE_W, 2.0f, 0, 1.0f);
+                anm_init(i_this, BCK_RD_DAMAGE_W, 2.0f, 0, 1.5f);
             } else if (range < 0) {
-                anm_init(i_this, BCK_RD_DAMAGE_L, 2.0f, 0, 1.0f);
+                anm_init(i_this, BCK_RD_DAMAGE_L, 2.0f, 0, 1.5f);
             } else {
-                anm_init(i_this, BCK_RD_DAMAGE_R, 2.0f, 0, 1.0f);
+                anm_init(i_this, BCK_RD_DAMAGE_R, 2.0f, 0, 1.5f);
             }
     } else {
-        anm_init(i_this, BCK_RD_DAMAGE_W, 2.0f, 0, 1.0f);
+        anm_init(i_this, BCK_RD_DAMAGE_W, 2.0f, 0, 1.5f);
     }
 
     i_this->field_0x9f0 = 20.0f + TREG_F(10);
@@ -4378,11 +4413,11 @@ static void damage_check(e_rd_class* i_this) {
                     if (i_this->at_info.mpCollider->ChkAtType(AT_TYPE_UNK)) {
                         i_this->damage_timer = 20;
                     } else {
-                        i_this->damage_timer = 10;
+                        i_this->damage_timer = 6;
                     }
 
                     if (i_this->at_info.mAttackPower <= 1) {
-                        i_this->damage_timer = 10 + KREG_S(8);
+                        i_this->damage_timer = 6 + KREG_S(8);
                     }
 
                     i_this->field_0xa20 |= i_this->at_info.mHitBit;
@@ -4392,9 +4427,16 @@ static void damage_check(e_rd_class* i_this) {
                     }
 
                     if (enemy->health <= 0 || i_this->at_info.mHitStatus != 0 || i_this->ride_mode != RIDE_MODE_OFF) {
-                        if (pla->getCutType() == daPy_py_c::CUT_TYPE_JUMP && pla->checkCutJumpCancelTurn()) {
+                        if (enemy->health > 0 && ((pla->getCutType() == daPy_py_c::CUT_TYPE_JUMP && pla->checkCutJumpCancelTurn())
+                            || pla->getCutType() == daPy_py_c::CUT_TYPE_TURN_LEFT || pla->getCutType() == daPy_py_c::CUT_TYPE_TURN_RIGHT)
+                            && pla->getCutType() != daPy_py_c::CUT_TYPE_GUARD_ATTACK) {
                             small_damage(i_this, i);
-                            i_this->damage_timer = 3 + NREG_S(7);
+                            if (pla->getCutType() == daPy_py_c::CUT_TYPE_TURN_LEFT || pla->getCutType() == daPy_py_c::CUT_TYPE_TURN_RIGHT) {
+                                i_this->damage_timer = 15 + NREG_S(7);
+                            }
+                            else {
+                                i_this->damage_timer = 6 + NREG_S(7);
+                            }
                         } else {
                             if (i_this->actor_set != ACTOR_SET_NONE && boar != NULL) {
                                 i_this->damage_timer = 20;
@@ -4504,11 +4546,27 @@ static void damage_check(e_rd_class* i_this) {
                         }
                     } else {
                         int iVar2 = i;
-                        if (i_this->at_info.mHitType == 16) {
+                        if (i_this->at_info.mHitType == 16 || pla->getCutType() == daPy_py_c::CUT_TYPE_GUARD_ATTACK) {
                             iVar2 = 0;
+                            small_damage(i_this, iVar2);
+                            i_this->damage_timer = 15;
                         }
-
-                        small_damage(i_this, iVar2);
+                        else if (i_this->at_info.mHitType == 1 && pla->getCutCount() != 3) {
+                            small_damage(i_this, iVar2);
+                            i_this->damage_timer = 6;
+                        }
+                        else if (pla->getCutCount() == 3) {
+                            f32 rnd = cM_rndF(1.0);
+                            if (rnd < 0.5) {
+                                i_this->action = ACTION_FIGHT;
+                                i_this->mode = 4;
+                            }
+                            else {
+                                i_this->action = ACTION_AVOID;
+                                i_this->mode = 0;
+                            }
+                            i_this->damage_timer = 10;
+                        }
                     }
 
                     enemy->speedF = 0.0f;
@@ -5304,7 +5362,7 @@ static void action(e_rd_class* i_this) {
             cMtx_YrotS(*calc_mtx, i_this->field_0x9f4);
             MtxPosition(&mae, &ato);
             enemy->current.pos += ato;
-            cLib_addCalc0(&i_this->field_0x9f0, 1.0f, 7.0f + TREG_F(12));
+            cLib_addCalc0(&i_this->field_0x9f0, 1.0f, 14.0f + TREG_F(12));
         }
     } else {
         enemy->attention_info.distances[fopAc_attn_BATTLE_e] = 34;

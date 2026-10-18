@@ -322,6 +322,7 @@ public:
     /* 0x0568 */ u8 mCutType;
     /* 0x0569 */ u8 mComboCutCount;
     /* 0x056A */ u8 mMode;
+    u8 mDodgeTimer;
     /* 0x056C */ s16 mDamageTimer;
     /* 0x056E */ u16 mSwordUpTimer;
     /* 0x0570 */ u32 mNoResetFlg0;
@@ -336,6 +337,7 @@ public:
     /* 0x0594 */ f32 mMaxSpeed;
     /* 0x0598 */ f32 mHeight;
     /* 0x059C */ csXyz mBodyAngle;
+    s16 mParryTimer;
     /* 0x05A4 */ cXyz mHeadTopPos;
     /* 0x05B0 */ cXyz mItemPos;
     /* 0x05BC */ cXyz mSwordTopPos;

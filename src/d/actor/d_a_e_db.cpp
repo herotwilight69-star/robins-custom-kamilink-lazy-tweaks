@@ -48,7 +48,7 @@ daE_DB_HIO_c::daE_DB_HIO_c() {
     flower_size = 0.5f;
     appear_size = 1.2f;
     roof_reappear_interval = 70;
-    attack_freq = 30;
+    attack_freq = 15;
 }
 
 static void anm_init(e_db_class* i_this, int i_anm, f32 i_morf, u8 i_mode, f32 i_speed) {
@@ -449,7 +449,7 @@ static void e_db_wait(e_db_class* i_this) {
         i_this->mode = 1;
 
         if (i_this->arg2 == 1) {
-            i_this->timers[1] = 30.0f + cM_rndF(20.0f);
+            i_this->timers[1] = 15.0f + cM_rndF(10.0f);
         } else {
             i_this->timers[1] = l_HIO.attack_freq + cM_rndF(l_HIO.attack_freq);
         }
@@ -493,14 +493,14 @@ static void e_db_wait(e_db_class* i_this) {
 
     if (i_this->field_0x850 != 0) {
         fopAc_ac_c* player = dComIfGp_getPlayer(0);
-        cLib_addCalcAngleS2(&actor->shape_angle.y, (i_this->angle_to_player + 0x8000), 8, 0x800);
+        cLib_addCalcAngleS2(&actor->shape_angle.y, (i_this->angle_to_player + 0x8000), 3, 0x1200);
         
         cXyz sp24 = player->eyePos - actor->current.pos;
         int sp8 = cM_atan2s(sp24.y, JMAFastSqrt(SQUARE(sp24.x) + SQUARE(sp24.z)));
         cLib_addCalcAngleS2(&actor->shape_angle.x, (sp8 + 0x8000), 8, 0x400);
         i_this->field_0xb14 = 1;
     } else {
-        cLib_addCalcAngleS2(&actor->shape_angle.y, i_this->angle_to_player, 8, 0x800);
+        cLib_addCalcAngleS2(&actor->shape_angle.y, i_this->angle_to_player, 3, 0x1200);
         cLib_addCalcAngleS2(&actor->shape_angle.x, 0, 8, 0x400);
     }
 }

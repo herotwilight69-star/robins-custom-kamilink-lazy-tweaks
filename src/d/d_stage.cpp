@@ -1635,6 +1635,7 @@ u8 dStage_roomControl_c::mNoArcBank;
 static void dStage_actorCreate(stage_actor_data_class* i_actorData, fopAcM_prm_class* i_actorPrm
                                 IF_DUSK_ARG(size_t recordSize = sizeof(stage_actor_data_class))) {
 #if TARGET_PC
+    i_actorPrm->mFromStageData = true;
     if (!dusk::mods::svc::stage_apply_actor_edits(i_actorData, i_actorPrm, recordSize,
             i_actorPrm->room_no))
     {

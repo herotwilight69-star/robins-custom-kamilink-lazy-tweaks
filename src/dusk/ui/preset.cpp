@@ -57,6 +57,67 @@ void applyPresetDusk() {
     s.game.enableMenuPointer.setValue(true);
 }
 
+void applyPresetKamilinkInit() {
+    auto& s = getSettings();
+    s.game.hideTvSettingsScreen.setValue(true);
+    s.game.disableRupeeCutscenes.setValue(true);
+    s.game.fastClimbing.setValue(true);
+    s.game.fastTears.setValue(true);
+    s.game.biggerWallets.setValue(true);
+    s.game.invertCameraXAxis.setValue(true);
+    s.game.invertFirstPersonYAxis.setValue(true);
+    s.game.no2ndFishForCat.setValue(true);
+    s.game.buttonFishing.setValue(true);
+    s.game.enableAchievementToasts.setValue(true);
+    s.game.enableControllerToasts.setValue(true);
+    s.game.enableQuickTransform.setValue(true);
+    s.game.instantSaves.setValue(true);
+    s.game.midnasLamentNonStop.setValue(true);
+    s.game.enableFrameInterpolation.setValue(FrameInterpMode::Unlimited);
+    s.game.sunsSong.setValue(true);
+    s.game.bloomMode.setValue(BloomMode::Dusk);
+    s.game.depthOfFieldMode.setValue(DepthOfFieldMode::Dusk);
+    s.game.internalResolutionScale.setValue(0);
+    s.game.shadowResolutionMultiplier.setValue(4);
+    s.game.enableGyroAim.setValue(true);
+    s.game.autoSave.setValue(true);
+    s.game.menuScalingMode.setValue(MenuScaling::Dusklight);
+    s.game.enhancedMapMenus.setValue(true);
+    s.game.enableMenuPointer.setValue(true);
+
+    s.game.swordMultiplier.setValue(40);
+    s.game.bowMultiplier.setValue(100);
+    s.game.wolfMultiplier.setValue(50);
+    s.game.damageMultiplier.setValue(2);
+    s.game.noHeartDrops.setValue(true);
+    s.game.noArrowDrops.setValue(false);
+    s.game.noRupeeDrops.setValue(false);
+    s.game.halfMyShitIsGone.setValue(true);
+    s.game.insulatedZoraArmor.setValue(true);
+    s.game.sturdierWolfLink.setValue(true);
+    s.game.progressiveDefense.setValue(true);
+    s.game.enableSkillMeter.setValue(true);
+    s.game.shieldUsesMeter.setValue(true);
+    s.game.meterSpin.setValue(true);
+    s.game.noHitstop.setValue(true);
+    s.game.noBattleMusic.setValue(true);
+    s.game.wolfGear.setValue(true);
+    s.game.alwaysLightSword.setValue(LightSwordMode::VISUALS_ONLY);
+    s.game.swordTrail.setValue(true);
+    s.game.fastSpinner.setValue(true);
+    s.game.enableFastIronBoots.setValue(true);
+    s.game.armorRupeeDrain.setValue(MagicArmorMode::ON_DAMAGE);
+    s.game.combinedParry.setValue(true);
+    s.game.suppressButtonPrompts.setValue(true);
+    s.game.noRupeeDrops.setValue(false);
+    s.game.noArrowDrops.setValue(false);
+    s.game.noWolfJumpMeter.setValue(false);
+    s.game.noMidnaChargeMeter.setValue(false);
+    s.game.dodgeCancel.setValue(true);
+    s.game.progressiveCombos.setValue(true);
+    s.game.enableCrouchShield.setValue(true);
+    s.game.enableManualShield.setValue(true);
+}
 }  // namespace
 
 PresetWindow::PresetWindow() : WindowSmall("modal") {
@@ -81,18 +142,18 @@ PresetWindow::PresetWindow() : WindowSmall("modal") {
     };
 
     static constexpr PresetInfo kPresets[] = {
-        {
-            "Classic",
-            "Enhancements disabled to match the GameCube version. "
-            "Good for speedrunning or simple nostalgia!",
-            applyPresetClassic,
-        },
-        {
-            "Dusklight",
-            "Graphics & quality of life tweaks, including some from the Wii U version. "
-            "Our recommended way to play!",
-            applyPresetDusk,
-        },
+        {"Classic",
+         "Enhancements disabled to match the GameCube version. "
+         "Good for speedrunning or simple nostalgia!",
+         applyPresetClassic},
+        {"Dusklight",
+         "Graphics & quality of life tweaks, including some from the Wii U version. "
+         "Our recommended way to play!",
+         applyPresetDusk},
+        {"Lazy Tweaks",
+            "Experience most of what Lazy Tweaks has to offer. "
+            "Kamilink's 'definitive' difficulty.",
+            applyPresetKamilinkInit},
     };
 
     for (const auto& preset : kPresets) {

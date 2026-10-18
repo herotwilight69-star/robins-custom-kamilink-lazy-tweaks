@@ -183,6 +183,62 @@ void daAlink_c::setUpperGuardAnime(f32 param_0) {
     onNoResetFlg2(FLG2_UNK_8000000);
 }
 
+BOOL daAlink_c::checkShieldCrouch() {
+    return checkShieldGet() && !checkAttentionLock() && !checkGrabAnime() && !checkUpperReadyThrowAnime() &&
+        !wallGrabTrigger() && !checkFmChainGrabAnime() && !checkEventRun() && dusk::getSettings().game.enableCrouchShield
+    && mDoCPd_c::getHoldLockR(PAD_1);
+}
+
+void daAlink_c::setShieldCrouch() {
+    if (mNormalSpeed >= 10.0f) {
+        seStartMapInfoLevel(Z2SE_FN_LINK_SLIP);
+        setFootEffectProcType(1);
+    }
+    cLib_chaseF(&mNormalSpeed, 0.0f, 1.75f);
+    int cutDir = getCutDirection();
+
+    setSingleAnimeBaseSpeed(ANM_CROUCH_DEF, mpHIO->mGuard.m.mCrouchGuardAnmSpeed,
+                            mpHIO->mGuard.m.mCrouchGuardInterpolation);
+    onNoResetFlg2(FLG2_UNK_8000000);
+
+    if (!mIsCrouching) {
+        setSwordVoiceSe(Z2SE_AL_ITEM_TAKEOUT);
+        mIsCrouching = true;
+    }
+
+    if (mEquipItem == 0x103 && mDoCPd_c::getTrigB(PAD_1)) {
+        if (checkCutTurnInput()) {
+            if (cutDir == DIR_RIGHT) {
+                procCutTurnInit(1, 1);
+            }
+            else if (cutDir == DIR_LEFT) {
+                procCutTurnInit(1, 0);
+            }
+        }
+        else if (cutDir == DIR_FORWARD) {
+            procCutNormalInit(CUT_NM_PARAM_COMBO_STAB);
+            resetCombo(TRUE);
+        }
+        else {
+            setCutDash(0, 0);
+        }
+    }
+    if (mDoCPd_c::getTrigA(PAD_1)) {
+        if (cutDir == DIR_BACKWARD) {
+            procBackJumpInit(0);
+        }
+        else if (cutDir == DIR_LEFT) {
+            procSideRollInit(2);
+        }
+        else if (cutDir == DIR_RIGHT) {
+            procSideRollInit(1);
+        }
+        else {
+            procFrontRollInit();
+        }
+    }
+}
+
 void daAlink_c::setShieldGuard() {
     f32 var_f31 = mNowAnmPackUpper[2].getRatio();
 
@@ -190,9 +246,12 @@ void daAlink_c::setShieldGuard() {
         (checkGuardAccept() && !checkGrabAnime() && !checkUpperReadyThrowAnime() &&
          !checkDkCaught2Anime() && !checkKandelaarSwingAnime() && !checkCutDashAnime() &&
          !checkCutDashChargeAnime() && (!checkEquipAnime() || checkUpperGuardAnime()) &&
-         !checkRideOn() && checkGuardActionChange()))
+         !checkRideOn() && checkGuardActionChange() && (mDoCPd_c::getHoldLockR(PAD_1) || mDoCPd_c::getTrigR(PAD_1)
+             || !dusk::getSettings().game.enableManualShield)))
     {
-        onNoResetFlg2(FLG2_UNK_8000000);
+        if (mGuardBreakTimer <= 0) {
+            onNoResetFlg2(FLG2_UNK_8000000);
+        }
     } else {
         offNoResetFlg2(FLG2_UNK_8000000);
     }
@@ -221,7 +280,12 @@ void daAlink_c::setGuardSe(dCcD_GObjInf* i_objinf) {
 }
 
 void daAlink_c::setSmallGuard(dCcD_GObjInf* i_objinf) {
-    setUpperAnimeBase(dRes_ID_ALANM_BCK_ATDEFS_e);
+    if (checkShieldCrouch()) {
+        setUpperAnimeBase(dRes_ID_ALANM_BCK_CROUCHDEFS_e);
+    }
+    else {
+        setUpperAnimeBase(dRes_ID_ALANM_BCK_ATDEFS_e);
+    }
     cXyz* dmg_vec = getDamageVec(i_objinf);
 
     mBodyAngle.y = (dmg_vec->atan2sX_Z() + 0x8000) - shape_angle.y;
@@ -242,7 +306,7 @@ int daAlink_c::procGuardSlipInit(int i_atSpl, dCcD_GObjInf* i_objinf) {
     }
 
     field_0x2fd5++;
-    if (field_0x2fd5 == 4) {
+    if (field_0x2fd5 == 2) {
         field_0x2fd5 = 0;
         return procGuardBreakInit();
     }
@@ -264,15 +328,21 @@ int daAlink_c::procGuardSlipInit(int i_atSpl, dCcD_GObjInf* i_objinf) {
         mProcVar2.field_0x300c = 0;
         mProcVar3.field_0x300e = 0;
     } else {
-        anmParams = &mpHIO->mGuard.m.mGuardHitAnm;
-        if (field_0x2f98 == 2) {
-            anm = ANM_GUARD_LEFT;
-        } else {
-            anm = ANM_GUARD_RIGHT;
+        if (checkShieldCrouch()) {
+            setUpperAnimeBase(dRes_ID_ALANM_BCK_CROUCHDEFSS_e);
+            resetUpperAnime(UPPER_2, 3.0f);
+            setUpperGuardAnime(-1.0f);
         }
-
-        setSingleAnimeParam(anm, anmParams);
-        setUpperGuardAnime(-1.0f);
+        else {
+            anmParams = &mpHIO->mGuard.m.mGuardHitAnm;
+            if (field_0x2f98 == 2) {
+                anm = ANM_GUARD_LEFT;
+            } else {
+                anm = ANM_GUARD_RIGHT;
+            }
+            setSingleAnimeParam(anm, anmParams);
+            setUpperGuardAnime(-1.0f);
+        }
 
         mProcVar2.field_0x300c = (current.angle.y + 0x8000) - shape_angle.y;
         if (abs(mProcVar2.field_0x300c) > 0x7000) {
@@ -414,6 +484,20 @@ int daAlink_c::procGuardAttackInit() {
     mProcVar3.field_0x300e = 0;
     mProcVar5.field_0x3012 = 0;
     mProcVar0.field_0x3008 = 0;
+
+    if (dusk::getSettings().game.enableSkillMeter) {
+        mSkillCooldown += 150;
+    }
+    if (!dusk::getSettings().game.alternateParry) {
+        if (dusk::getSettings().game.combinedParry) {
+            mIsCombinedParry = true;
+            mParryTimer = 10;
+        }
+        else {
+            mParryTimer = 10;
+            mIsNormalParry = true;
+        }
+    }
     return 1;
 }
 
@@ -451,7 +535,7 @@ int daAlink_c::procGuardAttack() {
     }
 
     if (var_r29) {
-        if (checkCutHeadState()) {
+        if (checkCutHeadState() && mSkillCooldown <= 150) {
             setDoStatusEmphasys(BUTTON_STATUS_HELM_SPLITTER);
         } else {
             setDoStatus(BUTTON_STATUS_UNK_134);
@@ -503,6 +587,7 @@ int daAlink_c::procGuardBreakInit() {
     field_0x3588 = l_halfAtnWaitBaseAnime;
     dComIfGp_getVibration().StartShock(VIBMODE_S_POWER5, 0x1F, cXyz(0.0f, 1.0f, 0.0f));
     voiceStart(Z2SE_AL_V_GUARD_BROKEN);
+    mGuardBreakTimer = 75;
     return 1;
 }
 

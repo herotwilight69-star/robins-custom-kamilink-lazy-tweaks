@@ -1218,7 +1218,7 @@ DUSK_GAME_DATA GXColor g_blackColor = {0, 0, 0, 255};
 
 int dComIfG_changeOpeningScene(scene_class* i_scene, s16 i_procName) {
     dComIfGp_offEnableNextStage();
-    dComIfGp_setNextStage("F_SP102", 100, 0, 10);
+    dComIfGp_setNextStage("F_SP108", 0, 5, 1);
     mDoAud_setSceneName(dComIfGp_getNextStageName(), dComIfGp_getNextStageRoomNo(),
                         dComIfGp_getNextStageLayer());
     dComIfGs_setRestartRoomParam(0);
@@ -2003,18 +2003,7 @@ u8 dComIfGs_getMixItemIndex(int i_no) {
 }
 
 void dComIfGp_setSelectItem(int i_selItemIdx) {
-    if (i_selItemIdx == SELECT_ITEM_DOWN) {
-        if (dComIfGs_getSelectItemIndex(i_selItemIdx) != 0xFF) {
-            u8 selItem_slotNo = dComIfGs_getSelectItemIndex(i_selItemIdx);
-            g_dComIfG_gameInfo.play.setSelectItem(i_selItemIdx, selItem_slotNo);
-
-            if (selItem_slotNo == 0xFF) {
-                dComIfGs_setSelectItemIndex(i_selItemIdx, 0xFF);
-            }
-        } else {
-            g_dComIfG_gameInfo.play.setSelectItem(i_selItemIdx, dItemNo_NONE_e);
-        }
-    } else if (dComIfGs_getSelectItemIndex(i_selItemIdx) != 0xFF) {
+    if (dComIfGs_getSelectItemIndex(i_selItemIdx) != 0xFF) {
         u8 item = dComIfGs_getItem(dComIfGs_getSelectItemIndex(i_selItemIdx), false);
         g_dComIfG_gameInfo.play.setSelectItem(i_selItemIdx, item);
 
@@ -2029,7 +2018,8 @@ void dComIfGp_setSelectItem(int i_selItemIdx) {
 u8 dComIfGp_getSelectItem(int i_selItemIdx) {
     u8 playItem = g_dComIfG_gameInfo.play.getSelectItem(i_selItemIdx);
 
-    if ((i_selItemIdx == SELECT_ITEM_X || i_selItemIdx == SELECT_ITEM_Y) &&
+    if ((i_selItemIdx == SELECT_ITEM_X || i_selItemIdx == SELECT_ITEM_Y ||
+            i_selItemIdx == SELECT_ITEM_Z) &&
         dComIfGs_getMixItemIndex(i_selItemIdx) != 0xFF)
     {
         u8 saveItem = dComIfGs_getItem(dComIfGs_getMixItemIndex(i_selItemIdx), false);

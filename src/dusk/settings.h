@@ -88,6 +88,12 @@ enum class AudioOutputMode : u8 {
     Surround8ch = 3,        // discrete 7.1
 };
 
+enum class LightSwordMode : u8 {
+    OFF = 0,
+    VISUALS_ONLY = 1,
+    INCLUDE_DAMAGE = 2,
+};
+
 namespace config {
 template <>
 struct ConfigEnumRange<BloomMode> {
@@ -162,6 +168,12 @@ struct ConfigEnumRange<AudioOutputMode> {
 };
 
 template <>
+struct ConfigEnumRange<LightSwordMode> {
+    static constexpr auto min = LightSwordMode::OFF;
+    static constexpr auto max = LightSwordMode::INCLUDE_DAMAGE;
+};
+
+template <>
 struct ConfigValueTraits<ui::ControlLayout> {
     static constexpr bool enabled = true;
 };
@@ -211,8 +223,20 @@ struct UserSettings {
         ConfigVar<bool> disableRupeeCutscenes;
         ConfigVar<bool> fastTransitions;
         ConfigVar<bool> noSwordRecoil;
+        ConfigVar<bool> noHitstop;
         ConfigVar<int> damageMultiplier;
+        ConfigVar<int> swordMultiplier;
+        ConfigVar<int> wolfMultiplier;
+        ConfigVar<bool> noWolfJumpMeter;
+        ConfigVar<bool> noMidnaChargeMeter;
+        ConfigVar<int> bowMultiplier;
         ConfigVar<bool> noHeartDrops;
+        ConfigVar<int> heartDropRate;
+        ConfigVar<bool> noArrowDrops;
+        ConfigVar<bool> noRupeeDrops;
+        ConfigVar<bool> halfMyShitIsGone;
+        ConfigVar<bool> quarterDeathTax;
+        ConfigVar<int> deathRupeeTax;
         ConfigVar<bool> instantDeath;
         ConfigVar<bool> fastClimbing;
         ConfigVar<bool> noMissClimbing;
@@ -227,17 +251,42 @@ struct UserSettings {
         ConfigVar<bool> enhancedMapMenus;
         ConfigVar<bool> aimingReticle;
         ConfigVar<bool> noHitStun;
+        ConfigVar<bool> sturdierWolfLink;
+        ConfigVar<bool> progressiveDefense;
+        ConfigVar<bool> enableSkillMeter;
+        ConfigVar<bool> shieldUsesMeter;
+        ConfigVar<bool> alternateParry;
+        ConfigVar<bool> combinedParry;
+        ConfigVar<bool> meterSpin;
+        ConfigVar<bool> dodgeCancel;
+        ConfigVar<bool> jumpStrikeCancel;
+        ConfigVar<bool> progressiveCombos;
+        ConfigVar<bool> enableCrouchShield;
+        ConfigVar<bool> enableManualShield;
 
         // Preferences
         ConfigVar<bool> enableMirrorMode;
         ConfigVar<bool> minimalHUD;
         ConfigVar<float> hudScale;
+        ConfigVar<float> zItemScale;
+        ConfigVar<bool> hideZButtonAmmo;
+        ConfigVar<bool> hideMidnaIcon;
         ConfigVar<bool> pauseOnFocusLost;
         ConfigVar<bool> enableLinkDollRotation;
         ConfigVar<bool> enableAchievementToasts;
         ConfigVar<bool> enableControllerToasts;
         ConfigVar<bool> enableDiscordPresence;
         ConfigVar<MenuScaling> menuScalingMode;
+        ConfigVar<bool> wolfGear;
+        ConfigVar<bool> shadowMidna;
+        ConfigVar<bool> invisibleMidna;
+        ConfigVar<LightSwordMode> alwaysLightSword;
+        ConfigVar<bool> swordTrail;
+        ConfigVar<bool> suppressButtonPrompts;
+        ConfigVar<float> midnaPositionX;
+        ConfigVar<float> midnaPositionY;
+        ConfigVar<float> skillMeterXPos;
+        ConfigVar<float> skillMeterYPos;
 
         // Graphics
         ConfigVar<BloomMode> bloomMode;
@@ -257,6 +306,8 @@ struct UserSettings {
         // Audio
         ConfigVar<bool> noLowHpSound;
         ConfigVar<bool> midnasLamentNonStop;
+        ConfigVar<bool> noBattleMusic;
+        ConfigVar<bool> muteBGM;
 
         // Input
         ConfigVar<bool> enableGyroAim;
@@ -314,6 +365,7 @@ struct UserSettings {
         ConfigVar<bool> invincibleEnemies;
         ConfigVar<bool> easyQuickSpin;
         ConfigVar<bool> infiniteEponaStamina;
+        ConfigVar<bool> insulatedZoraArmor;
 
         // Technical
         ConfigVar<bool> restoreWiiGlitches;
@@ -357,6 +409,7 @@ struct UserSettings {
         std::array<ActionBindConfigVar, 4> toggleMinimap;
         std::array<ActionBindConfigVar, 4> openDusklightMenu;
         std::array<ActionBindConfigVar, 4> turboSpeedButton;
+        std::array<ActionBindConfigVar, 4> oneButtonSpin;
     } actionBindings;
 };
 

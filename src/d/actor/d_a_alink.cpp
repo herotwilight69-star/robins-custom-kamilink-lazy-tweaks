@@ -4081,7 +4081,7 @@ JKRHeap* daAlink_c::setItemHeap() {
         onResetFlg0(RFLG0_UNK_4000);
     }
 
-    return mItemHeap[field_0x2fa0].setAnimeHeap();
+    return itemHeap(field_0x2fa0).setAnimeHeap();
 }
 
 /**
@@ -4566,9 +4566,9 @@ void daAlink_c::playerInit() {
     PLAYER_CREATE_ANM_HEAP(mFaceBtkHeap, daPy_anmHeap_c::HEAP_TYPE_2, "daAlink_c::mFaceBtkHeap");
     PLAYER_CREATE_ANM_HEAP(mFaceBckHeap, daPy_anmHeap_c::HEAP_TYPE_3, "daAlink_c::mFaceBckHeap");
 
-    for (i = 0; i < 2; i++) {
-        mItemHeap[i].setBufferSize(0x13200);
-        PLAYER_CREATE_ANM_HEAP_F(mItemHeap[i], daPy_anmHeap_c::HEAP_TYPE_4, "daAlink_c::mItemHeap[%d]", i);
+    for (i = 0; i < SELECT_ITEM_NUM; i++) {
+        itemHeap(i).setBufferSize(0x13200);
+        PLAYER_CREATE_ANM_HEAP_F(itemHeap(i), daPy_anmHeap_c::HEAP_TYPE_4, "daAlink_c::mItemHeap[%d]", i);
     }
     PLAYER_CREATE_ANM_HEAP(mAnmHeap9, daPy_anmHeap_c::HEAP_TYPE_3, "daAlink_c::mAnmHeap9");
     resetBasAnime();
@@ -6268,7 +6268,12 @@ void daAlink_c::decSwordBlur() {
     if (m_swordBlur.field_0x14 < 10) {
         m_swordBlur.field_0x14 = 0;
     } else {
-        m_swordBlur.field_0x14 -= 10;
+        if (dusk::getSettings().game.swordTrail) {
+            m_swordBlur.field_0x14 -= 5;
+        }
+        else {
+            m_swordBlur.field_0x14 -= 10;
+        }
         m_swordBlur.traceBlur(&current.pos, &old.pos, shape_angle.y - mPrevAngleY);
     }
 }
@@ -6568,7 +6573,12 @@ void daAlink_c::setAtCollision() {
             m_swordBlur.field_0x20 = mpHIO->mCut.m.mDashBlurAlpha;
             spC8.set(current.pos.x + (50.0f * cM_ssin(shape_angle.y)), 20.0f + current.pos.y, current.pos.z + (50.0f * cM_scos(shape_angle.y)));
         } else {
-            m_swordBlur.field_0x20 = mpHIO->mCut.m.mBlurAlpha;
+            if (dusk::getSettings().game.swordTrail) {
+                m_swordBlur.field_0x20 = 50;
+            }
+            else {
+                m_swordBlur.field_0x20 = mpHIO->mCut.m.mBlurAlpha;
+            }
             spC8.set(current.pos.x + (50.0f * cM_ssin(shape_angle.y)), field_0x3478, current.pos.z + (50.0f * cM_scos(shape_angle.y)));
         }
 
@@ -9381,10 +9391,13 @@ BOOL daAlink_c::midnaTalkTrigger() const {
         return dusk::getActionBindTrig(dusk::ActionBinds::CALL_MIDNA, 0);
     }
 #endif
-    return mItemTrigger & BTN_Z;
+    // return mItemTrigger & BTN_Z;
+    return mDoCPd_c::getHoldA(PAD_1) && mDoCPd_c::getHoldZ(PAD_1);
 }
 
 BOOL daAlink_c::swordSwingTrigger() {
+    if (mDoCPd_c::getHoldLockR(PAD_1))
+        return false;
     return swordTrigger();
 }
 
@@ -9503,7 +9516,7 @@ void daAlink_c::setStickData() {
         if (mDoCPd_c::getTrigY(PAD_1)) {
             mItemTrigger |= (daAlink_ITEM_BTN)BTN_Y;
         }
-        if (mDoCPd_c::getTrigZ(PAD_1)) {
+        if (mDoCPd_c::getTrigZ(PAD_1) && !mDoCPd_c::getHoldR(PAD_1)) {
             mItemTrigger |= (daAlink_ITEM_BTN)BTN_Z;
         }
         if (mDoCPd_c::getTrigL(PAD_1)) {
@@ -10359,10 +10372,15 @@ void daAlink_c::decideCommonDoStatus() {
         } else if (checkWolf()) {
             if (checkDownAttackState()) {
                 setDoStatusEmphasys(BUTTON_STATUS_FINISH);
-            } else if (checkCutHeadState()) {
+            } else if (checkCutHeadState() && mSkillCooldown <= 150) {
                 setDoStatusEmphasys(BUTTON_STATUS_HELM_SPLITTER);
             } else if (checkWolfSideStep()) {
-                setDoStatusEmphasys(BUTTON_STATUS_JUMP);
+                if (!dusk::getSettings().game.suppressButtonPrompts) {
+                    setDoStatusEmphasys(BUTTON_STATUS_JUMP);
+                }
+                else if (doTrigger()) {
+                    procWolfSideStepInit(0);
+                }
             } else {
                 if (mTargetedActor != NULL) {
                     if (fopAcM_GetName(mTargetedActor) == fpcNm_Tag_Wljump_e) {
@@ -10410,9 +10428,9 @@ void daAlink_c::decideCommonDoStatus() {
                 if (checkInputOnR() && direction != DIR_FORWARD) {
                     if (mEquipItem == 0x103 && checkDownAttackState()) {
                         setDoStatusEmphasys(BUTTON_STATUS_FINISH);
-                    } else if (mEquipItem == 0x103 && checkCutHeadState()) {
+                    } else if (mEquipItem == 0x103 && checkCutHeadState() && mSkillCooldown <= 150) {
                         setDoStatusEmphasys(BUTTON_STATUS_HELM_SPLITTER);
-                    } else {
+                    } else if (!dusk::getSettings().game.suppressButtonPrompts) {
                         setDoStatusEmphasys(BUTTON_STATUS_JUMP);
                     }
                 } else if (!checkSmallUpperGuardAnime() && (mEquipItem == 0x103 || mEquipItem == 0x102)) {
@@ -10420,7 +10438,7 @@ void daAlink_c::decideCommonDoStatus() {
                         setDoStatus(BUTTON_STATUS_THROW);
                     } else if (mEquipItem == 0x103 && checkDownAttackState()) {
                         setDoStatusEmphasys(BUTTON_STATUS_FINISH);
-                    } else if (mEquipItem == 0x103 && checkCutHeadState()) {
+                    } else if (mEquipItem == 0x103 && checkCutHeadState() && mSkillCooldown <= 150) {
                         setDoStatusEmphasys(BUTTON_STATUS_HELM_SPLITTER);
                     } else {
                         setDoStatus(BUTTON_STATUS_UNK_134);
@@ -11306,8 +11324,8 @@ BOOL daAlink_c::checkUpperItemActionFly() {
 void daAlink_c::checkItemButtonChange() {
     if (mProcID != PROC_CANOE_PADDLE_PUT && mEquipItem != dItemNo_NONE_e && !checkEquipAnime()) {
         u8 temp_r0;
-        for (u8 i = 0; i < 2; i++) {
-            temp_r0 = (i + 1) % 2;
+        for (u8 i = 0; i < SELECT_ITEM_NUM; i++) {
+            temp_r0 = (i + 1) % SELECT_ITEM_NUM;
             if (mEquipItem == dComIfGp_getSelectItem(i) &&
                 (mEquipItem != dComIfGp_getSelectItem(temp_r0) || mSelectItemId != temp_r0))
             {
@@ -11457,7 +11475,7 @@ void daAlink_c::orderPeep() {
 }
 
 int daAlink_c::orderTalk(int i_checkZTalk) {
-    static const u16 itemTalkType[2] = {6, 7};
+    static const u16 itemTalkType[3] = {6, 7, 8};
 
     if (notTalk()) {
         return 0;
@@ -11477,8 +11495,8 @@ int daAlink_c::orderTalk(int i_checkZTalk) {
     }
 
     if (!checkWolf() && checkRequestTalkActor(mAttList2, field_0x27f8)) {
-        for (int i = 0; i < 2; i++) {
-            // check if pressed X or Y and if item on button is a trade item
+        for (int i = 0; i < 3; i++) {
+            // check if pressed X or Y or Z and if item on button is a trade item
             if (checkTradeItem(dComIfGp_getSelectItem(i)) && itemTriggerCheck(1 << i)) {
                 fopAcM_orderTalkItemBtnEvent(itemTalkType[i], this, field_0x27f8, 0, 0);
                 return 1;
@@ -11712,12 +11730,12 @@ int daAlink_c::checkNormalAction() {
                 return checkDoCutAction();
             }
         } else if (dComIfGp_getDoStatus() == BUTTON_STATUS_HELM_SPLITTER) {
-            if (checkWolf()) {
+            if (checkWolf() && mSkillCooldown <= 0) {
                 return procWolfJumpAttackInit(1);
-            } else {
+            } else if (mSkillCooldown <= 150) {
                 return checkDoCutAction();
             }
-        } else if (dComIfGp_getDoStatus() == BUTTON_STATUS_UNK_139) {
+        } else if (dComIfGp_getDoStatus() == BUTTON_STATUS_UNK_139 && mSkillCooldown <= 0) {
             return procWolfJumpAttackInit(1);
         } else if (dComIfGp_getDoStatus() == BUTTON_STATUS_DRAW) {
             changeCutFast();
@@ -11902,10 +11920,39 @@ BOOL daAlink_c::checkItemAction() {
             ) && ((mLinkAcch.ChkGroundHit() || checkMagneBootsOn()) && dComIfGp_getRStatus() == 0)
             )
         {
-            setRStatus(BUTTON_STATUS_SHIELD_ATTACK);
+            // Old shield attack handling
 
-            if (spActionTrigger()) {
-                return procGuardAttackInit();
+            // setRStatus(BUTTON_STATUS_SHIELD_ATTACK)
+
+            // if (spActionTrigger()) {
+                // return procGuardAttackInit();
+
+            // New shield attack handling
+            // If R is held and easy quick spin is OFF,
+            if (mDoCPd_c::getHoldLockR(PAD_1) && !dusk::getSettings().game.easyQuickSpin) {
+                // Let B display the shield attack prompt if requisite skill meter
+                if (!dusk::getSettings().game.suppressButtonPrompts && mSkillCooldown <= 150)
+                    setBStatus(BUTTON_STATUS_SHIELD_ATTACK);
+                if (mDoCPd_c::getTrigB(PAD_1) && mSkillCooldown <= 150)
+                    return procGuardAttackInit();
+            }
+            // if easy quick spin is ON,
+            else if (mDoCPd_c::getHoldLockR(PAD_1) && dusk::getSettings().game.easyQuickSpin) {
+                // Let B display the shield attack prompt if requisite skill meter and not meeting easy quick spin requirements
+                if (!dusk::getSettings().game.suppressButtonPrompts && mSkillCooldown <= 150
+                    && getCutDirection() != DIR_LEFT && getCutDirection() != DIR_RIGHT)
+                    setBStatus(BUTTON_STATUS_SHIELD_ATTACK);
+                if (mDoCPd_c::getTrigB(PAD_1)) {
+                    if (mSkillCooldown <= 150 && getCutDirection() != DIR_LEFT && getCutDirection() != DIR_RIGHT) {
+                        return procGuardAttackInit();
+                    }
+                    if (getCutDirection() == DIR_LEFT) {
+                        return procCutTurnInit(1, 0);
+                    }
+                    if (getCutDirection() == DIR_RIGHT) {
+                        return procCutTurnInit(1, 1);
+                    }
+                }
             }
         }
     }
@@ -11917,9 +11964,14 @@ BOOL daAlink_c::checkRAction() {
     return false;
 }
 
+BOOL daAlink_c::checkDodgeInput() {
+    return checkAttentionLock() && checkInputOnR() && getDirectionFromShapeAngle() != DIR_FORWARD;
+}
+
 BOOL daAlink_c::checkMoveDoAction() {
     if (doTrigger()) {
-        if (dComIfGp_getDoStatus() == BUTTON_STATUS_JUMP) {
+        if (dComIfGp_getDoStatus() == BUTTON_STATUS_JUMP || checkDodgeInput()) {
+
             if (checkWolf()) {
                 return procWolfSideStepInit(0);
             }
@@ -12116,7 +12168,7 @@ void daAlink_c::allUnequip(BOOL param_0) {
     if (checkNoResetFlg2(FLG2_UNK_1) && param_0 && !checkCanoeRide() &&
         mEquipItem != dItemNo_KANTERA_e)
     {
-        for (u8 i = 0; i < 2; i++) {
+        for (u8 i = 0; i < SELECT_ITEM_NUM; i++) {
             if (dComIfGp_getSelectItem(i) == dItemNo_KANTERA_e) {
                 mSelectItemId = i;
             }
@@ -12168,7 +12220,7 @@ BOOL daAlink_c::checkItemChangeFromButton() {
             itemEquip(0x105);
         } else {
             u8 i;
-            for (i = 0; i < 2; i++) {
+            for (i = 0; i < SELECT_ITEM_NUM; i++) {
                 int proc_type = checkNewItemChange(i);
                 if (proc_type != 0 && itemTriggerCheck(1 << i)) {
                     BOOL var_r27 = changeItemTriggerKeepProc(i, proc_type);
@@ -12189,7 +12241,7 @@ BOOL daAlink_c::checkItemChangeFromButton() {
             } else if (mEquipItem == dItemNo_NONE_e && mThrowBoomerangAcKeep.getActor() == NULL &&
                        !checkCanoeRide() && checkNoUpperAnime() && checkNoResetFlg2(FLG2_UNK_1))
             {
-                for (i = 0; i < 2; i++) {
+                for (i = 0; i < SELECT_ITEM_NUM; i++) {
                     if (dComIfGp_getSelectItem(i) == dItemNo_KANTERA_e) {
                         mSelectItemId = i;
                     }
@@ -12201,7 +12253,7 @@ BOOL daAlink_c::checkItemChangeFromButton() {
                        mEquipItem != 0x102 && (!checkCanoeRide() || !checkFisingRodLure()))
             {
                 if (!checkEventRun() || strcmp(dComIfGp_getEventManager().getRunEventName(), "ANGER") != 0) {
-                    if (strcmp(dComIfGp_getEventManager().getRunEventName(), "ANGER2") != 0 && checkItemSetButton(mEquipItem) == 2) {
+                    if (strcmp(dComIfGp_getEventManager().getRunEventName(), "ANGER2") != 0 && checkItemSetButton(mEquipItem) == 3) {
                         allUnequip(1);
                     }
                 }
@@ -14407,7 +14459,7 @@ BOOL daAlink_c::checkGroupItem(int i_itemNo, int i_selItem) const {
 }
 
 int daAlink_c::checkSetItemTrigger(int i_itemNo) {
-    for (u8 i = 0; i < 2; i++) {
+    for (u8 i = 0; i < SELECT_ITEM_NUM; i++) {
         if (checkGroupItem(i_itemNo, dComIfGp_getSelectItem(i)) && itemTriggerCheck(1 << i)) {
             if (i_itemNo != dItemNo_HVY_BOOTS_e) {
                 mSelectItemId = i;
@@ -14420,13 +14472,13 @@ int daAlink_c::checkSetItemTrigger(int i_itemNo) {
 }
 
 int daAlink_c::checkItemSetButton(int i_itemNo) {
-    for (u8 i = 0; i < 2; i++) {
+    for (u8 i = 0; i < SELECT_ITEM_NUM; i++) {
         if (checkGroupItem(i_itemNo, dComIfGp_getSelectItem(i))) {
             return i;
         }
     }
 
-    return 2;
+    return 3;
 }
 
 bool daAlink_c::checkField() {
@@ -14626,7 +14678,7 @@ int daAlink_c::checkNewItemChange(u8 i_selItemIdx) {
                 return ITEM_PROC_BOTTLE_DRINK;
             }
 
-            if (checkOilBottleItem(sel_item) && checkItemSetButton(dItemNo_KANTERA_e) != 2) {
+            if (checkOilBottleItem(sel_item) && checkItemSetButton(dItemNo_KANTERA_e) != 3) {
                 return ITEM_PROC_KANDELAAR_POUR;
             }
         } else if (sel_item == dItemNo_HVY_BOOTS_e) {
@@ -14671,7 +14723,7 @@ int daAlink_c::checkNewItemChange(u8 i_selItemIdx) {
                     return ITEM_PROC_SPINNER_READY;
                 } else if (checkDungeonWarpItem(sel_item)) {
                     return ITEM_PROC_DUNGEON_WARP_READY;
-                } else if (checkItemSetButton(0x108) != 2 &&
+                } else if (checkItemSetButton(0x108) != 3 &&
                            (sel_item == dItemNo_WORM_e || sel_item == dItemNo_BEE_CHILD_e))
                 {
                     int itemNo = dComIfGp_getSelectItem(checkItemSetButton(0x108));
@@ -14695,7 +14747,7 @@ int daAlink_c::checkNewItemChange(u8 i_selItemIdx) {
                     return ITEM_PROC_NOT_USE_ITEM;
                 } else if (sel_item == dItemNo_HORSE_FLUTE_e) {
                     return ITEM_PROC_GRASS_WHISTLE;
-                } else if (checkOilBottleItem(sel_item) && checkItemSetButton(0x48) != 2) {
+                } else if (checkOilBottleItem(sel_item) && checkItemSetButton(0x48) != 3) {
                     return ITEM_PROC_KANDELAAR_POUR;
                 } else if (sel_item == dItemNo_HAWK_EYE_e) {
                     if (acceptSubjectModeChange()) {
@@ -14908,7 +14960,7 @@ void daAlink_c::setLight() {
             stopDrawParticle(field_0x31c4);
         }
 
-        if (mEquipItem == 0x103 && checkNoResetFlg3(FLG3_UNK_100000)) {
+        if (mEquipItem == 0x103 && (checkNoResetFlg3(FLG3_UNK_100000) || (dusk::getSettings().game.alwaysLightSword.getValue() == dusk::LightSwordMode::VISUALS_ONLY && checkLightMasterSwordEquip()))) {
             onNoResetFlg1(FLG1_UNK_80);
             var_r28 = true;
         }
@@ -15630,6 +15682,14 @@ int daAlink_c::procWaitInit() {
 int daAlink_c::procWait() {
     BOOL isPrevAnmWaitB = checkUnderMove0BckNoArc(ANM_WAIT_B);
 
+    if (checkShieldCrouch()) {
+        setShieldCrouch();
+        return 1;
+    }
+    if (!checkShieldCrouch()) {
+        mIsCrouching = false;
+    }
+
     if (!checkNextAction(0) && !checkFrontWallTypeAction()) {
         daPy_frameCtrl_c* frameCtrl_p = mUnderFrameCtrl;
         field_0x33f0 = (s16)(shape_angle.y - mPrevAngleY) * 0.005f;
@@ -15678,6 +15738,15 @@ int daAlink_c::procMoveInit() {
 
 int daAlink_c::procMove() {
     setFootEffectProcType(3);
+
+    if (checkShieldCrouch()) {
+        setShieldCrouch();
+        return 1;
+    }
+    if (!checkShieldCrouch()) {
+        mIsCrouching = false;
+    }
+
     if (!checkNextAction(0) && !checkFrontWallTypeAction()) {
         if (mDemo.getDemoMode() == daPy_demo_c::DEMO_UNK_2_e &&
             mNormalSpeed > mMaxSpeed * mpHIO->mMove.m.mWalkChangeRate)
@@ -16203,7 +16272,13 @@ int daAlink_c::procFrontRollInit() {
     mNormalSpeed *= fastRollMultiplier;
 #endif
 
-    current.angle.y = shape_angle.y;
+    if (mIsBackRoll && checkAttentionLock() && mTargetedActor != NULL) {
+        current.angle.y = shape_angle.y - -0x8000;
+    }
+    else {
+        current.angle.y = shape_angle.y;
+    }
+
     voiceStart(Z2SE_AL_V_BACKTEN);
     mProcVar2.field_0x300c = 0;
     setFootEffectProcType(0);
@@ -16267,7 +16342,7 @@ int daAlink_c::procFrontRoll() {
             onModeFlg(1);
         }
 
-        if (mProcVar2.field_0x300c != 0) {
+        if (mProcVar2.field_0x300c != 0 && !mIsTargetedRoll) {
             procCutFinishInit(2);
         } else if (!checkNextAction(1)) {
             cLib_chaseF(&mNormalSpeed, 0.0f, 2.5f);
@@ -16303,7 +16378,7 @@ int daAlink_c::procFrontRoll() {
             dComIfGp_getVibration().StartShock(1, 1, cXyz(0.0f, 1.0f, 0.0f));
         }
 
-        if (checkForceSwordSwing()) {
+        if (checkForceSwordSwing() && !mIsTargetedRoll) {
             mProcVar2.field_0x300c = 1;
         }
 
@@ -16525,7 +16600,8 @@ int daAlink_c::procSideRoll() {
             checkNextAction(0);
         }
     } else if (mProcVar2.field_0x300c != 0 && !checkNotJumpSinkLimit() &&
-               frameCtrl_p->getFrame() > mpHIO->mGuard.mTurnMove.m.mTurnAnm.mCancelFrame)
+               frameCtrl_p->getFrame() > mpHIO->mGuard.mTurnMove.m.mTurnAnm.mCancelFrame
+               && mSkillCooldown <= 150 && !mIsSideRoll)
     {
         procCutFinishJumpUpInit();
     } else if (frameCtrl_p->getFrame() > mpHIO->mGuard.mTurnMove.m.mTurnAnm.mCancelFrame) {
@@ -17393,7 +17469,6 @@ int daAlink_c::procCrouchInit() {
     if (!commonProcInitNotSameProc(PROC_CROUCH)) {
         return 0;
     }
-
     setSingleAnimeBaseSpeed(ANM_CROUCH, mpHIO->mCrouch.m.mCrouchAnmSpeed,
                             mpHIO->mCrouch.m.mCrouchInterpolation);
     current.angle.y = shape_angle.y;
@@ -17852,7 +17927,7 @@ int daAlink_c::execute() {
 
     if (checkNoResetFlg2(FLG2_UNK_1) != FALSE &&
         mEquipItem != dItemNo_KANTERA_e &&
-        checkItemSetButton(dItemNo_KANTERA_e) == 2) {
+        checkItemSetButton(dItemNo_KANTERA_e) == 3) {
         offKandelaarModel();
     }
 
@@ -18239,9 +18314,131 @@ int daAlink_c::execute() {
             damageTimerCount();
         }
 
+        // i-frame tickdown
+        if (mDodgeTimer != 0) {
+            mDodgeTimer--;
+        }
+        if (mDodgeTimer <= 0) {
+            mDodgeTimer = 0;
+        }
+
+        // Set "dodge" prompt on Z
+        if (!mIsWolfDodge && checkNowWolf()) {
+            fopAc_ac_c* zhint = dComIfGp_att_getZHint();
+            if (zhint != NULL) {
+                setMidnaTalkStatus(BUTTON_STATUS_CHECK);
+            }
+            else {
+                dComIfGp_setZStatus(BUTTON_STATUS_DODGE, 1);
+            }
+            mCanWolfDodge = true;
+        }
+        // Wolf Z-dodge handling
+        if (!mIsWolfDodge && checkNowWolf() && !checkGrabAnime() && !checkUpperReadyThrowAnime()
+            && !wallGrabTrigger() && !checkFmChainGrabAnime() && !checkEventRun() && !getWallGrabStatus()
+            && mDoCPd_c::getTrigZ(PAD_1)) {
+            procWolfBackJumpInit(1);
+            mDodgeTimer = 15;
+            mWaitThisLong = 30;
+            mIsWolfDodge = true;
+        }
+        // Wolf Z-dodge followup attack
+        if (mIsWolfDodge && mDoCPd_c::getTrigB(PAD_1)) {
+            resetUpperAnime(UPPER_2, 3.0f);
+            procWolfWaitAttackInit(2);
+            mIsWolfDodge = false;
+        }
+
+        if (mParryTimer != 0) {
+            mParryTimer--;
+        }
+        if (mParryTimer <= 0) {
+            mParryTimer = 0;
+            mIsNormalParry = false;
+            mIsCombinedParry = false;
+            mIsDeflect = false;
+        }
+
+        // Guard break timer for preventing avoiding damage via repeated guard breaks
+        if (mGuardBreakTimer != 0) {
+            mGuardBreakTimer--;
+        }
+        if (mGuardBreakTimer <= 0) {
+            mGuardBreakTimer = 0;
+        }
+
+        // Don't tick down mSkillCooldown while the player is guarding
+        if (mSkillCooldown != 0) {
+            if (dusk::getSettings().game.shieldUsesMeter) {
+                if (!mDoCPd_c::getHoldLockR(PAD_1) || !dusk::getSettings().game.enableManualShield) {
+                    mSkillCooldown--;
+                }
+            }
+            else {
+                mSkillCooldown--;
+            }
+        }
+        // Ceiling so skill cooldown does not "fatigue" for long ass times if the player keeps guarding
+        if (mSkillCooldown >= 450) {
+            mSkillCooldown = 450;
+        }
+        if (mSkillCooldown <= 0) {
+            mSkillCooldown = 0;
+        }
+
+        // Multi purpose timer for stuff
+        if (mWaitThisLong != 0) {
+            mWaitThisLong--;
+        }
+        if (mWaitThisLong <= 0) {
+            if (mIsDeflectAnm) {
+                resetUpperAnime(UPPER_2, 3.0);
+                mIsDeflectAnm = false;
+            }
+            if (mIsTargetedRoll) {
+                mIsTargetedRoll = false;
+            }
+            if (mIsBackRoll) {
+                mIsBackRoll = false;
+            }
+            if (mIsWolfDodge) {
+                mIsWolfDodge = false;
+            }
+            if (mIsSideRoll) {
+                mIsSideRoll = false;
+            }
+            mWaitThisLong = 0;
+        }
+
+        // Slow down the targeted front roll
+        if (mIsTargetedRoll) {
+            cLib_chaseF(&mNormalSpeed, 13.0f, 2.0f);
+        }
+
+        // Riposte logic
+        if (mRiposteTimer != 0) {
+            setBStatus(BUTTON_STATUS_DRAW);
+            if (mDoCPd_c::getTrigB(PAD_1)) {
+                if (cM_rndF(1.0) < 0.5) {
+                    procCutFinishInit(CUT_FINISH_PARAM_MORTAL_DRAW_A);
+                    mRiposteTimer = 0;
+                    mDodgeTimer = 30;
+                }
+                else {
+                    procCutFinishInit(CUT_FINISH_PARAM_MORTAL_DRAW_B);
+                    mRiposteTimer = 0;
+                    mDodgeTimer = 30;
+                }
+            }
+            mRiposteTimer--;
+        }
+        if (mRiposteTimer <= 0) {
+            mRiposteTimer = 0;
+        }
+
         if (checkEquipHeavyBoots()) {
             int itemButton = checkItemSetButton(dItemNo_HVY_BOOTS_e);
-            if (itemButton == 2 || checkNotHeavyBootsStage()) {
+            if (itemButton == 3 || checkNotHeavyBootsStage()) {
                 if (!dComIfGp_checkPlayerStatus1(0, 0x10000) || !checkHookshotRoofLv7Boss()) {
                     setHeavyBoots(0);
                 }
@@ -18279,6 +18476,68 @@ int daAlink_c::execute() {
             setItemAction();
             checkComboCnt();
             setShieldGuard();
+
+            // Dodge cancel & targeted/shielded roll tree
+            int direction = getCutDirection();
+            if ((checkNoResetFlg2(FLG2_UNK_8000000) && dusk::getSettings().game.enableManualShield) || (dusk::getSettings().game.dodgeCancel
+                && mComboCutCount != 0 && mComboCutCount != 4 && (mDoCPd_c::getHoldLockR(PAD_1) || mDoCPd_c::getTrigR(PAD_1)))) {
+                if (mDoCPd_c::getTrigA(PAD_1)) {
+                    if (direction == DIR_LEFT) {
+                        procSideRollInit(2);
+                        mIsSideRoll = true;
+                        mWaitThisLong = 30;
+                    }
+                    else if (direction == DIR_RIGHT) {
+                        procSideRollInit(1);
+                        mIsSideRoll = true;
+                        mWaitThisLong = 30;
+                    }
+                    else if (direction == DIR_BACKWARD) {
+                        mIsBackRoll = true;
+                        procFrontRollInit();
+                        mWaitThisLong = 45;
+                    }
+                    else if ((direction == DIR_FORWARD || direction == DIR_NONE)
+                        && (mSkillCooldown <= 150 || mEquipItem != 0x103)) {
+                        procFrontRollInit();
+                        mWaitThisLong = 25;
+                        if (mEquipItem == 0x103) {
+                            mIsTargetedRoll = true;
+                            if (dusk::getSettings().game.enableSkillMeter) {
+                                mSkillCooldown += 150;
+                            }
+                        }
+                    }
+                }
+                // Set parry timer on R input for parry styles that include deflect
+                if ((dusk::getSettings().game.alternateParry || dusk::getSettings().game.combinedParry)
+                    && mDoCPd_c::getTrigR(PAD_1)) {
+                    mParryTimer = 6;
+                    mIsDeflect = true;
+                }
+                // Sound effect for raising shield
+                if (!mIsShielding) {
+                    setSwordVoiceSe(Z2SE_AL_ITEM_TAKEOUT);
+                    mIsShielding = true;
+                }
+            }
+            else {
+                mIsShielding = false;
+            }
+            // Reset deflect animation for subsequent deflects
+            if (mIsDeflectAnm && mDoCPd_c::getTrigR(PAD_1)) {
+                resetUpperAnime(UPPER_2, 3.0);
+                onNoResetFlg2(FLG2_UNK_8000000);
+            }
+            // Mid-combo jump strike cancel
+            if (mComboCutCount >= 1 && mComboCutCount <= 3 && dusk::getSettings().game.jumpStrikeCancel) {
+                if (mDoCPd_c::getHoldA(PAD_1) && !(mDoCPd_c::getTrigR(PAD_1) || mDoCPd_c::getHoldLockR(PAD_1))) {
+                    if (mSkillCooldown <= 150 && (dComIfGs_isEventBit(dSv_event_flag_c::F_0343)
+                        || checkNoResetFlg3(FLG3_TRANING_CUT_LARGE_JUMP)) && direction == DIR_NONE) {
+                        procCutLargeJumpChargeInit();
+                    }
+                }
+            }
 
             if (checkCutFastReady()) {
                 if (checkNoUpperAnime()) {
@@ -18763,7 +19022,7 @@ int daAlink_c::execute() {
 
             if (!checkWolf()) {
                 u8 tmp;
-                for (u8 i = 0; i < 2; i++) {
+                for (u8 i = 0; i < SELECT_ITEM_NUM; i++) {
                     tmp = (i + 1) % 2;
                     if (dComIfGp_getSelectItem(i) == dItemNo_EMPTY_BOTTLE_e && (mUseButtonFlags & (1 << i)) &&
                         dComIfGp_getSelectItem(tmp) == dItemNo_EMPTY_BOTTLE_e)
@@ -18773,7 +19032,7 @@ int daAlink_c::execute() {
                 }
             }
 
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < SELECT_ITEM_NUM; i++) {
                 if (!(mUseButtonFlags & (1 << i)) && !(field_0x2faf & (1 << i))) {
                     dMeter2Info_offUseButton(METER2_USEBUTTON_X << i);
                 }
@@ -19074,11 +19333,25 @@ void daAlink_c::setDrawHand() {
 }
 
 bool daAlink_c::checkSwordDraw() {
+
+#if TARGET_PC
+    if (dusk::getSettings().game.wolfGear) {
+        return ((checkSwordGet() && mSwordChangeWaitTimer == 0) && !checkNoResetFlg2(FLG2_UNK_2080000));
+    }
+#endif
+
     return ((checkSwordGet() && mSwordChangeWaitTimer == 0) && !checkNoResetFlg2(FLG2_UNK_2080000))
             && (!checkWolf() || !dComIfGs_isEventBit(dSv_event_flag_c::M_068));
 }
 
 bool daAlink_c::checkShieldDraw() {
+
+#if TARGET_PC
+    if (dusk::getSettings().game.wolfGear) {
+        return ((checkShieldGet() && mShieldChangeWaitTimer == 0) && !checkNoResetFlg2(FLG2_UNK_4080000));
+    }
+#endif
+
     return ((checkShieldGet() && mShieldChangeWaitTimer == 0) && !checkNoResetFlg2(FLG2_UNK_4080000)) &&
            (!checkWolf() || !dComIfGs_isEventBit(dSv_event_flag_c::M_068));
 }
@@ -19216,6 +19489,14 @@ int daAlink_c::moveShadowScaleLight() {
 
 void daAlink_c::shadowDraw() {
     daMidna_c* midna = getMidnaActor();
+#if TARGET_PC
+    // Shadow Midna setting reuses the demo force flag, but shouldn't hide Wolf Link's shadow
+    if (midna != NULL && midna->checkShadowMidnaSettingForce()) {
+        if (midna->checkShadowModelDrawSmode() && (field_0x2ff4 >= 0x3FF0 || !checkMidnaRide())) {
+            return;
+        }
+    } else
+#endif
     if (midna != NULL && ((midna->checkShadowModelDraw() && (field_0x2ff4 >= 0x3FF0 || !checkMidnaRide())) || midna->checkShadowModelDrawDemoForce())) {
         return;
     }
