@@ -326,6 +326,35 @@ ModResult config_set_string(ModContext* context, ConfigVarHandle var, const char
     return MOD_OK;
 }
 
+ModResult config_set_string_for_mod(
+    ModContext* context, const char* modId, const char* name, const char* value) {
+    if (mod_from_context(context) == nullptr || modId == nullptr || name == nullptr ||
+        value == nullptr || !utils::is_valid_config_name(name))
+    {
+        return MOD_INVALID_ARGUMENT;
+    }
+
+    auto* mod = ModLoader::instance().find_mod(modId);
+    if (mod == nullptr || !mod->active) {
+        return MOD_UNAVAILABLE;
+    }
+
+    const std::string fullName =
+        fmt::format("mod.{}.{}", escape_mod_id_for_config(mod->metadata.id), name);
+    auto* configVar = config::GetConfigVar(fullName);
+    if (configVar == nullptr) {
+        return MOD_UNAVAILABLE;
+    }
+    auto* stringVar = dynamic_cast<ConfigVar<std::string>*>(configVar);
+    if (stringVar == nullptr) {
+        return MOD_INVALID_ARGUMENT;
+    }
+
+    stringVar->setValue(std::string{value});
+    config_mark_dirty();
+    return MOD_OK;
+}
+
 ModResult config_subscribe(ModContext* context, ConfigVarHandle var, ConfigChangedFn callback,
     void* userData, ConfigSubscriptionHandle* outHandle) {
     if (outHandle != nullptr) {
@@ -395,6 +424,7 @@ constexpr ConfigService s_configService{
     .set_string = config_set_string,
     .subscribe = config_subscribe,
     .unsubscribe = config_unsubscribe,
+    .set_string_for_mod = config_set_string_for_mod,
 };
 
 }  // namespace
