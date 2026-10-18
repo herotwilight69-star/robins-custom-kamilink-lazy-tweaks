@@ -2123,7 +2123,7 @@ static void e_rdy_damage(e_rdy_class* i_this) {
 
     i_this->mTargetEyeScale = 0.0f;
 
-    if (!daPy_py_c::checkNowWolf() && e_this->checkCutDownHitFlg()) {
+    if (e_this->checkCutDownHitFlg()) {
         e_this->offCutDownHitFlg();
         i_this->mMode = 3;
         i_this->mTimer[0] = 100;
@@ -2225,7 +2225,7 @@ static void e_rdy_damage(e_rdy_class* i_this) {
         a_this->shape_angle.y = a_this->current.angle.y;
         cLib_addCalcAngleS2(&i_this->field_0xadc.x, -0x4000, 1, BREG_S(4) + 0x300);
         if (i_this->mAcch.ChkGroundHit()) {
-            if (a_this->health > 0 && !daPy_py_c::checkNowWolf()) {
+            if (a_this->health > 0) {
                 e_this->onDownFlg();
             }
             dKy_Sound_set(a_this->current.pos, 100, fopAcM_GetID(i_this), 5);
@@ -3159,7 +3159,7 @@ static void damage_check(e_rdy_class* i_this) {
                         if (i_this->mAtInfo.mpCollider->ChkAtType(AT_TYPE_UNK)) {
                             i_this->mIFrameTimer = 20;
                         } else {
-                            i_this->mIFrameTimer = 10;
+                            i_this->mIFrameTimer = 6;
                         }
                         if (i_this->mAtInfo.mAttackPower <= 1) {
                             i_this->mIFrameTimer = 10 + KREG_S(8);

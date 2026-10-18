@@ -114,6 +114,12 @@ public:
 
     bool checkBoomWindTgTimer() { return mBoomWindTgTimer == 0; }
 
+#if TARGET_PC
+    // True for freestanding items placed in stage/room data; false for items created at runtime
+    // (grass, pots, enemy drops, etc.)
+    bool isPrePlaced() const { return mPrePlaced; }
+#endif
+
     static DUSK_GAME_DATA procFunc mFuncPtr[];
     static DUSK_GAME_DATA const dCcD_SrcCyl m_cyl_src;
     static DUSK_GAME_DATA s32 m_timer_max;
@@ -148,6 +154,7 @@ public:
 #if TARGET_PC
     u8 mOriginalItemNo;
     bool mItemOverridden;
+    bool mPrePlaced;
 #endif
 };  // Size: 0x9C4
 

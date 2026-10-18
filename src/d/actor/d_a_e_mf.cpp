@@ -92,10 +92,10 @@ enum Animation {
 daE_MF_HIO_c::daE_MF_HIO_c() {
     field_0x4 = -1;
     model_size = 1.3f;
-    movement_speed = 8.0f;
-    dash_speed = 28.0f;
-    battle_init_range = 300.0f;
-    attack_init_range = 350.0f;
+    movement_speed = 16.0f;
+    dash_speed = 45.0f;
+    battle_init_range = 350.0f;
+    attack_init_range = 400.0f;
     field_0x1c = 3;
     field_0x1e = 40;
     field_0x20 = 80;
@@ -981,6 +981,7 @@ static void e_mf_fight_run(e_mf_class* i_this) {
     f32 fVar1 = 0.0f;
     int frame = i_this->mpModelMorf->getFrame();
     s8 sVar4 = 1;
+    f32 rnd = cM_rndF(1.0f);
 
     if (pl_check(i_this, i_this->field_0x6b8 + 50.0f, 0x7FFF) == 0 && i_this->field_0x6c0[0] == 0) {
         if (i_this->field_0x6ca == 0) {
@@ -994,6 +995,7 @@ static void e_mf_fight_run(e_mf_class* i_this) {
         case -10:
             anm_init(i_this, ANM_WAIT_01, 5.0f, 2, 1.0f);
             i_this->field_0x6c0[1] = cM_rndF(10.0f) + 15.0f;
+            i_this->field_0x6c0[3] = 90;
             i_this->mSound.startCreatureVoice(Z2SE_EN_MF_V_FIND, -1);
             i_this->field_0x5b4 = -9;
             break;
@@ -1135,11 +1137,21 @@ static void e_mf_fight_run(e_mf_class* i_this) {
             if ((sVar3 != 0 || (i_this->mPlayerDistance < l_HIO.battle_init_range &&
                 ((daPy_getPlayerActorClass()->getCutAtFlg() != 0 || daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_JUMP) ||
                 ((i_this->field_0x6ac & 48) != 0 && daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_GUARD_ATTACK)))) && i_this->field_0x72c < 1.0f) {
-                i_this->mAction = 7;
-                if (cc_pl_cut_bit_get() == 0x100) {
+                if (rnd < 0.70f) {
+                    i_this->mAction = 7; // ACTION_GUARD
+                    if (cc_pl_cut_bit_get() == 0x100) {
+                        i_this->field_0x5b4 = 0;
+                    } else {
+                        i_this->field_0x5b4 = 5;
+                    }
+                }
+                else if (rnd < 0.85f) {
+                    i_this->mAction = ACTION_ATTACK;
                     i_this->field_0x5b4 = 0;
-                } else {
-                    i_this->field_0x5b4 = 5;
+                }
+                else {
+                    i_this->mAction = ACTION_TAIL_ATTACK;
+                    i_this->field_0x5b4 = 0;
                 }
 
                 i_this->field_0x6e8 = 30.0f;
@@ -1149,20 +1161,36 @@ static void e_mf_fight_run(e_mf_class* i_this) {
             } else {
                 if (i_this->mPlayerDistance < l_HIO.attack_init_range) {
                     if (i_this->field_0x6c0[2] == 0) {
-                        i_this->field_0x6c0[2] = cM_rndF(60.0f) + 30.0f;
+                        i_this->field_0x6c0[2] = cM_rndF(30.0f) + 15.0f;
+                        i_this->field_0x6c0[3] = 90;
                         if (way_check(i_this) == 0 && cM_rndF(1.0f) < 0.65f) {
                             i_this->mAction = 5;
-                            i_this->field_0x5b4 = 0;
                         } else {
                             i_this->mAction = 6;
-                            i_this->field_0x5b4 = 0;
                         }
+                        i_this->field_0x5b4 = 0;
                     }
                 } else {
-                    i_this->field_0x6c0[2] = cM_rndF(50.0f) + 30.0f;
+                    // prevent timer from resetting if player exits range
+                    if (i_this->field_0x6c0[2] > 20) {
+                        i_this->field_0x6c0[2] = 20;
+                    } else if (i_this->field_0x6c0[2] < 10) {
+                        i_this->field_0x6c0[2] = 10;
+                    }
+                    i_this->field_0x6c0[3] = 90;
                 }
-
             }
+        } else if (i_this->mPlayerDistance < l_HIO.attack_init_range &&
+                   i_this->field_0x6c0[3] == 0) {
+            // anti-stall, force an attack if it's been too long
+            i_this->field_0x6c0[2] = cM_rndF(30.0f) + 15.0f;
+            i_this->field_0x6c0[3] = 90;
+            if (way_check(i_this) == 0 && cM_rndF(1.0f) < 0.65f) {
+                i_this->mAction = 5;
+            } else {
+                i_this->mAction = 6;
+            }
+            i_this->field_0x5b4 = 0;
         }
     }
 
@@ -1375,7 +1403,7 @@ static void e_mf_attack(e_mf_class* i_this) {
     s16 sVar1, sVar2;
     switch (i_this->field_0x5b4) {
         case 0:
-            anm_init(i_this, ANM_ATTACK_TAIL_02, 6.0f, 0, 1.0f);
+            anm_init(i_this, ANM_ATTACK_TAIL_02, 6.0f, 0, 1.5f);
             i_this->mSound.startCreatureVoice(Z2SE_EN_MF_V_KNIFE2_A, -1);
             i_this->field_0x5b4 = 1;
             // fallthrough
@@ -1393,7 +1421,7 @@ static void e_mf_attack(e_mf_class* i_this) {
                 cLib_addCalcAngleS2(&i_this->field_0x806, sVar1, 2, 0x400);
             }
 
-            if (frame >= 15 && frame <= 20) {
+            if (frame >= 12 && frame <= 23) {
                 i_this->field_0x6cf = 1;
                 i_this->field_0x6ce = 0;
             }
@@ -1457,7 +1485,7 @@ static void e_mf_tail_attack(e_mf_class* i_this) {
     i_this->field_0x6d4 = 1;
     switch (i_this->field_0x5b4) {
         case 0:
-            anm_init(i_this, ANM_ATTACK_01, 5.0f, 0, 1.0f);
+            anm_init(i_this, ANM_ATTACK_01, 5.0f, 0, 1.5f);
             i_this->mpModelMorf->setFrame(20.0f);
             i_this->field_0x5b4 = 1;
             i_this->field_0x6c0[1] = 0;
@@ -1483,7 +1511,7 @@ static void e_mf_tail_attack(e_mf_class* i_this) {
             if (i_this->field_0x6c0[1] != 0 && i_this->mpModelMorf->checkFrame(55.0f)) {
                 i_this->mAction = 5;
                 i_this->field_0x5b4 = 1;
-                anm_init(i_this, ANM_ATTACK_TAIL_02, 4.0f, 0, 1.0f);
+                anm_init(i_this, ANM_ATTACK_TAIL_02, 4.0f, 0, 1.5f);
                 i_this->mpModelMorf->setFrame(20.0f);
                 i_this->mSound.startCreatureVoice(Z2SE_EN_MF_V_KNIFE2_A, -1);
                 return;
@@ -1535,7 +1563,7 @@ static void e_mf_guard(e_mf_class* i_this) {
             break;
 
         case 5:
-            anm_init(i_this, ANM_GUARD, 3.0f, 0, 1.0f);
+            anm_init(i_this, ANM_GUARD, 3.0f, 0, 1.5f);
             i_this->mSound.startCreatureVoice(Z2SE_EN_MF_V_GUARD, -1);
             i_this->field_0x5b4 = 6;
             // fallthrough
@@ -1586,15 +1614,15 @@ static void e_mf_s_damage(e_mf_class* i_this) {
     switch (i_this->field_0x5b4) {
         case 0:
             i_this->field_0x5b4 = 1;
-            i_this->field_0x6c0[0] = 20;
-            anm_init(i_this, ANM_WAIT_01, 10.0f, 2, 1.0f);
+            i_this->field_0x6c0[0] = 10;
+            anm_init(i_this, ANM_WAIT_01, 10.0f, 2, 1.5f);
             break;
 
         case 1:
             if (i_this->field_0x6c0[0] == 0) {
                 i_this->mAction = 3;
                 i_this->field_0x5b4 = 0;
-                i_this->field_0x6c0[0] = 40;
+                i_this->field_0x6c0[0] = 20;
             }
     }
 
@@ -1689,7 +1717,7 @@ static void e_mf_damage(e_mf_class* i_this) {
             i_this->field_0x6d3 = 1;
             i_this->field_0x6c0[1] = l_HIO.field_0x20 + 1;
         }
-    } else if (i_this != NULL && a_this->checkCutDownHitFlg()) {
+    } if (i_this != NULL && a_this->checkCutDownHitFlg()) {
         a_this->offCutDownHitFlg();
         i_this->field_0x5b4 = 3;
         a_this->health = 0;
@@ -1804,7 +1832,7 @@ static void e_mf_damage(e_mf_class* i_this) {
             cLib_addCalcAngleS2(&i_this->field_0x704.x, -0x4000, 1, 0x300);
 
             if (i_this->mObjAcch.ChkGroundHit()) {
-                if (a_this->health > 0 && daPy_py_c::checkNowWolf() == 0) {
+                if (a_this->health > 0) {
                     a_this->onDownFlg();
                 }
 
@@ -1826,15 +1854,15 @@ static void e_mf_damage(e_mf_class* i_this) {
 
                 a_this->current.angle.y = i_this->field_0x704.y;
                 if (daPy_py_c::checkNowWolf() != 0) {
-                    i_this->field_0x6c0[0] = 80;
-                    i_this->field_0x6c0[1] = 55;
+                    i_this->field_0x6c0[0] = 15;
+                    i_this->field_0x6c0[1] = 10;
                 } else {
                     if (a_this->health <= 0) {
                         i_this->field_0x6c0[0] = 60;
                     } else {
                         i_this->field_0x6c0[0] = 5;
                     }
-                    i_this->field_0x6c0[1] = 35;
+                    i_this->field_0x6c0[1] = 5;
                 }
 
                 i_this->field_0x5b4 = 3;
@@ -2120,9 +2148,22 @@ static void small_damage(e_mf_class* i_this) {
     i_this->field_0x6ec = i_this->mAtInfo.mHitDirection.y;
 }
 
+static void* findLizards(void* i_actor, void* i_data) {
+    if (fopAcM_IsActor(i_actor) && i_actor != i_data &&
+        fopAcM_GetName(i_actor) == fpcNm_E_MF_e &&
+        !fpcM_IsCreating(fopAcM_GetID(i_actor)) &&
+        fopAcM_GetRoomNo((fopAc_ac_c*)i_actor) == fopAcM_GetRoomNo((fopAc_ac_c*)i_data))
+    {
+        return i_actor;
+    }
+
+    return NULL;
+}
+
 static void damage_check(e_mf_class* i_this) {
     fopEn_enemy_c* a_this = (fopEn_enemy_c*)&i_this->actor;
     daPy_py_c* player = (daPy_py_c*)dComIfGp_getPlayer(0);
+    e_mf_class* otherLizards = (e_mf_class*)fopAcM_Search(findLizards, i_this);
 
     i_this->mStts.Move();
 
@@ -2136,7 +2177,7 @@ static void damage_check(e_mf_class* i_this) {
             if (i_this->field_0xa7c[i].ChkTgHit() != 0) {
                 i_this->mAtInfo.mpCollider = i_this->field_0xa7c[i].GetTgHitObj();
                 if (player->getCutType() != daPy_py_c::CUT_TYPE_WOLF_B_LEFT && player->getCutType() != daPy_py_c::CUT_TYPE_WOLF_B_RIGHT &&
-                    i_this->mAtInfo.mpCollider->ChkAtType(AT_TYPE_WOLF_ATTACK)) {
+                    player->getCutType() == daPy_py_c::CUT_TYPE_WOLF_JUMP) {
                     if (!player->onWolfEnemyHangBite(mf_p)) {
                         return;
                     }
@@ -2158,10 +2199,6 @@ static void damage_check(e_mf_class* i_this) {
                     s16 sVar1 = a_this->health;
                     cc_at_check(a_this, &i_this->mAtInfo);
 
-                    if (daPy_getPlayerActorClass()->getCutType() == daPy_py_c::CUT_TYPE_HEAD_JUMP) {
-                        i_this->mAtInfo.mHitStatus = 0;
-                    }
-
                     if (i_this->mAtInfo.mpCollider->ChkAtType(AT_TYPE_UNK)) {
                         i_this->field_0x6c8 = 20;
                     } else {
@@ -2174,6 +2211,7 @@ static void damage_check(e_mf_class* i_this) {
 
                     i_this->field_0x724 |= i_this->mAtInfo.mHitBit;
                     if (i_this->mAtInfo.mHitType == 16 || i_this->mAtInfo.mpCollider->ChkAtType(AT_TYPE_HOOKSHOT)) {
+                        // insert guard break here once you figure it out lol
                         a_this->health = sVar1;
                         i_this->mAction = 12;
                         i_this->field_0x5b4 = 0;
@@ -2199,12 +2237,33 @@ static void damage_check(e_mf_class* i_this) {
                             if (player->getCutType() == daPy_py_c::CUT_TYPE_JUMP && player->checkCutJumpCancelTurn()) {
                                 small_damage(i_this);
                                 i_this->field_0x6c8 = 3;
-                            } else {
+                            }
+                            else if (player->getCutType() == daPy_py_c::CUT_TYPE_TURN_LEFT
+                                || player->getCutType() == daPy_py_c::CUT_TYPE_TURN_RIGHT) {
+                                small_damage(i_this);
+                                i_this->field_0x6c8 = 15;
+                            }
+                            else if (player->getCutCount() != 4 || player->getCutType() == daPy_py_c::CUT_TYPE_HEAD_JUMP
+                                || player->getCutType() == daPy_py_c::CUT_TYPE_MORTAL_DRAW_A || player->getCutType() == daPy_py_c::CUT_TYPE_MORTAL_DRAW_B) {
                                 big_damage(i_this);
                                 i_this->field_0x6c8 = 1000;
                             }
-                        } else {
+                        } else if ((player->getCutCount() != 1 && player->getCutCount() != 3) || i_this->mAtInfo.mpCollider->ChkAtType(AT_TYPE_WOLF_ATTACK)
+                            || (player->getCutCount() != 3 && otherLizards != NULL)) {
                             small_damage(i_this);
+                            i_this->field_0x6c8 = 6;
+                        // slight redundancy here
+                        } else if ((player->getCutCount() == 1 || (player->getCutCount() == 3 && otherLizards == NULL)) && player->getCutType() <= daPy_py_c::CUT_TYPE_NM_LEFT) {
+                            f32 rnd = cM_rndF(1.0f);
+                            if (player->getCutCount() == 3) {
+                                if (rnd < 0.33f) {
+                                    e_mf_attack(i_this);
+                                }
+                                else if (rnd < 0.66f) {
+                                    e_mf_tail_attack(i_this);
+                                }
+                            }
+                            i_this->field_0x6c8 = 6;
                         }
 
                         a_this->speedF = 0.0f;
@@ -3190,7 +3249,7 @@ static cPhs_Step daE_MF_Create(fopAc_ac_c* a_this) {
         i_this->mObjAcch.Set(fopAcM_GetPosition_p(a_this), fopAcM_GetOldPosition_p(a_this), a_this, 1,
                              &i_this->mAcchCir, fopAcM_GetSpeed_p(a_this), NULL, NULL);
         i_this->mAcchCir.SetWall(80.0f, 100.0f);
-        a_this->health = 200;
+        a_this->health = 250;
         a_this->field_0x560 = 200;
         i_this->mStts.Init(200, 0, a_this);
 

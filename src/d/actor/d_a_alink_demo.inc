@@ -3038,8 +3038,27 @@ int daAlink_c::procCoDeadInit(int param_0) {
     field_0x3080 = 0;
     mProcVar5.field_0x3012 = 0x3F;
     field_0x3198 = -1;
+    if (dusk::getSettings().game.halfMyShitIsGone || dusk::getSettings().game.quarterDeathTax || dusk::getSettings().game.deathRupeeTax != 0) {
+        loseRupees();
+    }
     return 1;
 }
+#if TARGET_PC
+void daAlink_c::loseRupees() {
+    int rupeesRobbed = dusk::getSettings().game.deathRupeeTax;
+    u16 playerRupees = g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().getRupee();
+
+    if (dusk::getSettings().game.halfMyShitIsGone) {
+        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(playerRupees / 2);
+    }
+    if (dusk::getSettings().game.quarterDeathTax) {
+        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(playerRupees * 0.75);
+    }
+    if (dusk::getSettings().game.deathRupeeTax != 0) {
+        g_dComIfG_gameInfo.info.getPlayer().getPlayerStatusA().setRupee(playerRupees - rupeesRobbed);
+    }
+}
+#endif
 
 int daAlink_c::procCoDead() {
     daPy_frameCtrl_c* frameCtrl_p = mUnderFrameCtrl;
@@ -3130,7 +3149,19 @@ int daAlink_c::procCoDead() {
                 exitId = mProcVar5.field_0x3012;
                 roomNo = field_0x3198;
             } else {
-                startRestartRoom(mode, 0xC9, 0, 1);
+                // If Hyrule Castle sewers, reuse old respawn logic:
+                if (checkStageName("R_SP107")) {
+                    startRestartRoom(mode, 0xC9, 0, 1);
+                    return 1;
+                }
+                // Otherwise, reuse game start stuff:
+                dComIfGp_offEnableNextStage();
+                dComIfGp_setNextStage(
+                    g_dComIfG_gameInfo.info.getPlayer().getPlayerReturnPlace().getName(),
+                    g_dComIfG_gameInfo.info.getPlayer().getPlayerReturnPlace().getPlayerStatus(),
+                    g_dComIfG_gameInfo.info.getPlayer().getPlayerReturnPlace().getRoomNo(),
+                    -1, 0.0f, 0, 1, 0, 0, 0, 0
+                    );
                 return 1;
             }
 
@@ -4154,7 +4185,7 @@ int daAlink_c::procDungeonWarpReadyInit() {
     }
 
     fpc_ProcID id;
-    if (checkItemSetButton(dItemNo_DUNGEON_EXIT_e) != 2) {
+    if (checkItemSetButton(dItemNo_DUNGEON_EXIT_e) != 3) {
         id = fopAcM_create(fpcNm_OBJ_TKS_e, 0, &current.pos, fopAcM_GetRoomNo(this), &shape_angle,
                            NULL, -1);
     } else {

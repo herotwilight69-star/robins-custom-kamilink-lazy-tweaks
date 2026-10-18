@@ -48,6 +48,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          fetch-tags: true
           submodules: recursive
 
       - name: Install dependencies
@@ -73,13 +74,15 @@ jobs:
 
       - name: Generate AppImage
         run: ci/build-appimage.sh
+        env:
+          PRESET: ${{matrix.preset}}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: dusklight-${{env.APP_VERSION}}-linux-${{matrix.preset}}-${{matrix.artifact_arch}}
+          name: lazytweaks-${{env.APP_VERSION}}-linux-${{matrix.preset}}-${{matrix.artifact_arch}}
           path: |
-            build/install/Dusklight-*.AppImage
+            build/install/lazytweaks-*.AppImage
             build/install/debug.tar.*
             build/install/sdk/
 
@@ -103,6 +106,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          fetch-tags: true
           submodules: recursive
 
       - name: Select stable Xcode toolchain
@@ -140,12 +144,16 @@ jobs:
       - name: Build
         run: cmake --build --preset ${{matrix.preset}}
 
+      - name: Package app bundle
+        if: matrix.platform == 'macos'
+        run: ditto -c -k --keepParent build/install/Dusklight.app build/install/Dusklight.app.zip
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: dusklight-${{env.APP_VERSION}}-${{matrix.artifact_name}}
+          name: lazytweaks-${{env.APP_VERSION}}-${{matrix.artifact_name}}
           path: |
-            build/install/Dusklight.app
+            build/install/Dusklight.app.zip
             build/install/debug.tar.*
             build/install/sdk/
 
@@ -170,6 +178,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          fetch-tags: true
           submodules: recursive
 
       - name: Install dependencies
@@ -252,7 +261,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: dusklight-${{env.APP_VERSION}}-android-${{matrix.artifact_arch}}
+          name: lazytweaks-${{env.APP_VERSION}}-android-${{matrix.artifact_arch}}
           path: upload/
 
   build-windows:
@@ -285,6 +294,7 @@ jobs:
         with:
           path: s
           fetch-depth: 0
+          fetch-tags: true
           submodules: recursive
 
       - name: Create short workspace drive
@@ -325,7 +335,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: dusklight-${{env.APP_VERSION}}-win32-msvc-${{matrix.artifact_arch}}
+          name: lazytweaks-${{env.APP_VERSION}}-win32-msvc-${{matrix.artifact_arch}}
           path: |
             s/build/install/*.exe
             s/build/install/*.dll
@@ -370,7 +380,7 @@ jobs:
             fi
             (cd "${source}" && zip -qr "${destination}" .)
           }
-          versioned="dusklight-${RELEASE_TAG}"
+          versioned="lazytweaks-${RELEASE_TAG}"
           package_artifact "${versioned}-linux-gcc-x86_64" "linux-x86_64"
           package_artifact "${versioned}-linux-gcc-aarch64" "linux-arm64"
           package_artifact "${versioned}-ios-appleclang-arm64" "ios-arm64"

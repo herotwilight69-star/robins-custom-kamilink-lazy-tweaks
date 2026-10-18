@@ -121,6 +121,12 @@ constexpr std::array kMagicArmorModes = {
     "Cosmetic",
 };
 
+constexpr std::array kLightSwordModes = {
+    "Off",
+    "Visuals Only",
+    "Include Damage Boost",
+};
+
 bool try_parse_backend(std::string_view backend, AuroraBackend& outBackend) {
     if (backend == "auto") {
         outBackend = BACKEND_AUTO;
@@ -1347,6 +1353,443 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             });
     });
 
+    add_tab("Lazy Tweaks", [this](Rml::Element* content) {
+        auto& leftPane = add_child<Pane>(content, Pane::Type::Controlled);
+        auto& rightPane = add_child<Pane>(content, Pane::Type::Uncontrolled);
+
+        auto addOption = [&](const Rml::String& key, ConfigVar<bool>& value,
+                             const Rml::String& helpText) {
+            config_bool_select(leftPane, rightPane, value,
+                {
+                    .key = key,
+                    .helpText = helpText,
+                });
+        };
+        auto addSpeedrunDisabledOption = [&](const Rml::String& key, ConfigVar<bool>& value,
+                                             const Rml::String& helpText) {
+            add_speedrun_disabled_option(leftPane, rightPane, value, key, helpText);
+        };
+
+        leftPane.add_section("Presets");
+        leftPane.register_control(leftPane.add_button("FIOR DI BATTAGLIA").on_pressed([this] {
+            mDoAud_seStartMenu(kSoundClick);
+            applyPresetBattaglia();
+            config::save();
+        }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("The intended difficulty of Lazy Tweaks' complete combat rebalance. Experience a smoother introduction to the combat before difficulty eventually ramps in the second half of the game.");
+            });
+        leftPane.register_control(leftPane.add_button("VANILLA PLUS").on_pressed([this] {
+            mDoAud_seStartMenu(kSoundClick);
+            applyPresetVanillaPlus();
+            config::save();
+        }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("An experience closer to vanilla; changes less about the overall feel of TP's combat while attempting to remain more engaging than the original.");
+            });
+        leftPane.register_control(leftPane.add_button("DEATHWISH").on_pressed([this] {
+            mDoAud_seStartMenu(kSoundClick);
+            applyPresetDeathwish();
+            config::save();
+        }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Am I not enough for you?");
+            });
+
+        leftPane.add_section("Damage Given/Received");
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Sword Damage Multiplier",
+                .getValue = [] { return getSettings().game.swordMultiplier.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.swordMultiplier.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return getSettings().game.speedrunMode.getValue(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.swordMultiplier.getValue() !=
+                               getSettings().game.swordMultiplier.getDefaultValue();
+                    },
+                .min = 0,
+                .max = 1000,
+                .step = 10,
+                .suffix = "%",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Multiplies the damage Link's sword will do to most enemies. Set to 0 to make most enemies invulnerable to the sword, except for Ending Blow.");
+            });
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Wolf Damage Multiplier",
+                .getValue = [] { return getSettings().game.wolfMultiplier.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.wolfMultiplier.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return getSettings().game.speedrunMode.getValue(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.wolfMultiplier.getValue() !=
+                               getSettings().game.wolfMultiplier.getDefaultValue();
+                    },
+                .min = 0,
+                .max = 1000,
+                .step = 10,
+                .suffix = "%",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Multiplies damage done by Wolf Link attacks, except Midna Charge.");
+            });
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Bow Damage Multiplier",
+                .getValue = [] { return getSettings().game.bowMultiplier.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.bowMultiplier.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return getSettings().game.speedrunMode.getValue(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.bowMultiplier.getValue() !=
+                               getSettings().game.bowMultiplier.getDefaultValue();
+                    },
+                .min = 0,
+                .max = 1000,
+                .step = 10,
+                .suffix = "%",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Multiplies the damage Link's arrows will do to most enemies. Set to 0 to make most enemies invulnerable to arrows. Does not affect Bomb Arrows.");
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.progressiveDefense,
+            {
+                .key = "Progressive Damage Multiplier",
+                .helpText = "Automatically applies a smoother difficulty curve by placing an additional 2x damage multiplier to the existing value halfway through the game (2x becomes 4x, 4x becomes 6x, etc.).",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.insulatedZoraArmor,
+            {
+                .key = "Insulated Zora Armor",
+                .helpText = "Zora Armor is no longer weak to ice and fire. Wear Mommy Zora's fashionable gift to you without fear.",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.sturdierWolfLink,
+            {
+                .key = "Sturdier Wolf Link",
+                .helpText = "Wolf Link no longer takes twice as much damage as Link in human form.",
+            });
+
+        leftPane.add_section("Penalties and Drop Rates");
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Death Rupee Tax",
+                .getValue = [] { return getSettings().game.deathRupeeTax.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.deathRupeeTax.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return speedrun::isActive(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.deathRupeeTax.getValue() !=
+                               getSettings().game.deathRupeeTax.getDefaultValue();
+                    },
+                .min = 0,
+                .max = 2000,
+                .step = 50,
+                .suffix = " Rupees",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Set a custom amount of rupees to lose upon death.");
+            });
+        addSpeedrunDisabledOption("Death Rupee Tax (Half)", getSettings().game.halfMyShitIsGone,
+            "Half of Link's rupees at the time of death will be lost. It's like Dark Souls, but shittier.");
+        config_bool_select(leftPane, rightPane, getSettings().game.quarterDeathTax,
+            {
+                .key = "Death Rupee Tax (Quarter)",
+                .helpText = "Quarter of Link's rupees at the time of death will be lost. It's like Dark Souls, but...poopier, I guess? I don't know, man. I just work here.",
+            });
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Heart Drop Rate",
+                .getValue = [] { return getSettings().game.heartDropRate.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.heartDropRate.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return speedrun::isActive(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.heartDropRate.getValue() !=
+                               getSettings().game.heartDropRate.getDefaultValue();
+                    },
+                .min = 0,
+                .max = 100,
+                .step = 10,
+                .suffix = "%",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Changes how often hearts drop from enemies, pots, grass, etc.");
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.noArrowDrops,
+            {
+                .key = "No Arrow Drops",
+                .helpText = "Make sure to enter every dungeon extra prepared! Not recommended for use during Goron Mines.",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.noRupeeDrops,
+            {
+                .key = "No Rupee Drops",
+                .helpText = "Suddenly, Malo began investing in Golden Bugs.",
+            });
+
+        leftPane.add_section("Skill Meter and Other Mechanics");
+        config_bool_select(leftPane, rightPane, getSettings().game.enableSkillMeter,
+            {
+                .key = "Enable Skill Meter",
+                .helpText = "Enables a new skill meter that balances the usage of some attacks. Affects Midna Charge, Wolf Jump Attacks, Shield Attack, Helm Splitter, and Back Slice.",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.shieldUsesMeter,
+            {
+                .key = "Shield Uses Meter",
+                .helpText = "Blocking attacks will consume the skill meter, and the meter will not regenerate while blocking. Blocking without enough meter will incur a guard break. Parrying fully restores meter.",
+                .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.meterSpin,
+            {
+                .key = "Great Spin Uses Meter",
+                .helpText = "Ties the Great Spin to the skill meter. Can use Great Spin so long as Link's health and the skill meter are above half. Full health incurs no meter cost.",
+                .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.noWolfJumpMeter,
+            {
+                .key = "Disable Wolf Jump Meter Usage",
+                .helpText = "Disable Wolf jump attacks using the skill meter when the meter is enabled.",
+                .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.noMidnaChargeMeter,
+            {
+                .key = "Disable Midna Charge Meter Usage",
+                .helpText = "Disable Midna charge attacks using the skill meter when the meter is enabled.",
+                .isDisabled = [] { return !getSettings().game.enableSkillMeter.getValue();}
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.alternateParry,
+            {
+                .key = "Deflect instead of Parry",
+                .helpText = "Replace Parry with Deflect, which is based on timed blocks rather than shield bash.",
+                .isDisabled = [] { return getSettings().game.combinedParry.getValue();}
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.combinedParry,
+            {
+                .key = "Combined Parrying",
+                .helpText = "Deflect and Parry are both active, giving Parry a new Riposte action triggered by pressing B within 1 second after a successful parry instead of a damage boost.",
+                .isDisabled = [] { return getSettings().game.alternateParry.getValue();}
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.enableCrouchShield,
+            {
+                .key = "Crouch Shielding",
+                .helpText = "Enables crouch shielding and crouch attacks a la N64 Zelda games.",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.enableManualShield,
+            {
+                .key = "Manual Shielding",
+                .helpText = "Disables automatic shielding on target lock. Required for some new mechanics (like Deflect) to work properly or at all.",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.dodgeCancel,
+            {
+                .key = "Attack Dodge Cancel",
+                .helpText = "Enables dodging in the middle of some basic attacks with R+A.",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.jumpStrikeCancel,
+            {
+                .key = "Jump Strike Cancel",
+                .helpText = "Enables initiating a jump strike charge in the middle of some basic attacks by holding A without a directional input.",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.progressiveCombos,
+            {
+                .key = "Progressive Combo Damage",
+                .helpText = "Each sequential hit in a combo string deals slightly more damage. Best when playing with a sword damage multiplier of lower than 50%.",
+            });
+
+        leftPane.add_section("Gamefeel Stuff");
+        addOption("No Hitstop", getSettings().game.noHitstop,
+        "Removes the brief freeze-frame pause that occurs when attacks connect.");
+        config_bool_select(leftPane, rightPane, getSettings().game.noBattleMusic,
+            {
+                .key = "No Battle Music",
+                .helpText = "Disables battle music (except in Twilight).",
+            });
+        add_speedrun_disabled_option(leftPane, rightPane, getSettings().game.muteBGM,
+            "Mute All Music",
+            "Disables all background music. Mostly for recording footage while keeping a the HUD.");
+        addOption("Always Show Gear As Wolf", getSettings().game.wolfGear,
+            "Makes the sword and shield always visible on Wolf Link.");
+        addOption("Shadow/Translucent Midna", getSettings().game.shadowMidna,
+            "Makes Midna appear in her shadow form on Wolf Link's back. Causes less issues than the old Invisible Midna setting.");
+        addOption("Invisible Midna", getSettings().game.invisibleMidna,
+            "Makes Midna appear invisible on Wolf Link's back. There is a known semi-softlock in the dialogue bit directly after taking the river shortcut after melting Zora's Domain. Temporarily turn the setting off if this happens.");
+        leftPane.register_control(
+            leftPane.add_select_button({
+                .key = "Always Glowing Light Sword",
+                .getValue =
+                    [] {
+                        return kLightSwordModes[static_cast<u8>(getSettings().game.alwaysLightSword.getValue())];
+                    },
+                .isDisabled = [] { return getSettings().game.speedrunMode.getValue(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.alwaysLightSword.getValue() !=
+                               getSettings().game.alwaysLightSword.getDefaultValue();
+                    },
+            }),
+            rightPane, [](Pane& pane) {
+                for (int i = 0; i < kLightSwordModes.size(); i++) {
+                    pane.add_button({
+                            .text = kLightSwordModes[i],
+                            .isSelected =
+                                [i] {
+                                    return getSettings().game.alwaysLightSword.getValue() == static_cast<LightSwordMode>(i);
+                                },
+                        })
+                        .on_pressed([i] {
+                            mDoAud_seStartMenu(kSoundItemChange);
+                            getSettings().game.alwaysLightSword.setValue(static_cast<LightSwordMode>(i));
+                            config::save();
+                        });
+                }
+                pane.add_rml(
+                    "<br/>Retain the Master Sword's glow effect after infusing it with the two Sols. Include Damage Boost may have unintended interactions with enemies/bosses weak to Light.");
+            });
+        addOption("More Prominent Sword Trail", getSettings().game.swordTrail,
+                "Makes the sword trail more prominent when swinging.");
+        addOption("Suppress Button Prompts", getSettings().game.suppressButtonPrompts,
+                "Suppresses many button prompts that become redundant for experienced players.");
+
+        leftPane.add_section("Other Shit (UI)");
+        config_percent_select(leftPane, rightPane, getSettings().game.zItemScale,
+            "Z-Item Scale",
+            "Scales the size of item icons on Z. Re-equip item or reload area after changing.",
+            50, 200, 5);
+        config_bool_select(leftPane, rightPane, getSettings().game.hideZButtonAmmo,
+            {
+                .key = "Hide Z Button Ammo",
+                .helpText = "Hides the ammo counter on Z-button items, for compatibility with mods that make HUD alterations. Re-equip item or reload area after changing.",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.hideMidnaIcon,
+            {
+                .key = "Hide Midna Icon",
+                .helpText = "Hides the Midna icon. She will be sad (also might break quick transform).",
+            });
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Midna Position X",
+                .getValue = [] { return getSettings().game.midnaPositionX.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.midnaPositionX.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return getSettings().game.speedrunMode.getValue(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.midnaPositionX.getValue() !=
+                               getSettings().game.midnaPositionX.getDefaultValue();
+                    },
+                .min = -900,
+                .max = 100,
+                .step = 1,
+                .suffix = " ",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Offsets the Midna icon horizontally.");
+            });
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Midna Position Y",
+                .getValue = [] { return getSettings().game.midnaPositionY.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.midnaPositionY.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return getSettings().game.speedrunMode.getValue(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.midnaPositionY.getValue() !=
+                               getSettings().game.midnaPositionY.getDefaultValue();
+                    },
+                .min = -450,
+                .max = 450,
+                .step = 1,
+                .suffix = " ",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Offsets the Midna icon vertically.");
+            });
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Skill Meter Offset X",
+                .getValue = [] { return getSettings().game.skillMeterXPos.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.skillMeterXPos.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return getSettings().game.speedrunMode.getValue(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.skillMeterXPos.getValue() !=
+                               getSettings().game.skillMeterXPos.getDefaultValue();
+                    },
+                .min = -100,
+                .max = 600,
+                .step = 1,
+                .suffix = " ",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Offsets the skill meter icon horizontally.");
+            });
+        leftPane.register_control(
+            leftPane.add_child<NumberButton>(NumberButton::Props{
+                .key = "Skill Meter Offset Y",
+                .getValue = [] { return getSettings().game.skillMeterYPos.getValue(); },
+                .setValue =
+                    [](int value) {
+                        getSettings().game.skillMeterYPos.setValue(value);
+                        config::save();
+                    },
+                .isDisabled = [] { return getSettings().game.speedrunMode.getValue(); },
+                .isModified =
+                    [] {
+                        return getSettings().game.skillMeterYPos.getValue() !=
+                               getSettings().game.skillMeterYPos.getDefaultValue();
+                    },
+                .min = -100,
+                .max = 600,
+                .step = 1,
+                .suffix = " ",
+            }),
+            rightPane, [](Pane& pane) {
+                pane.clear();
+                pane.add_text("Offsets the skill meter icon vertically.");
+            });
+    });
+
     add_tab("Cheats", [this](Rml::Element* content) {
         auto& leftPane = add_child<Pane>(content, Pane::Type::Controlled);
         auto& rightPane = add_child<Pane>(content, Pane::Type::Uncontrolled);
@@ -1375,7 +1818,7 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
         addCheat(
             "Moon Jump (R+A)", getSettings().game.moonJump, "Hold R and A to rise into the air.");
         addCheat(
-            "Easy Quick Spin (R+B)", getSettings().game.easyQuickSpin, "Hold R to always do a Quick Spin when attacking with B.");
+            "Easy Quick Spin (R+B+Direction)", getSettings().game.easyQuickSpin, "Hold R and Left/Right to always do a Quick Spin when attacking with B.");
 
         addCheat("Super Clawshot", getSettings().game.superClawshot,
             "Extends Clawshot behavior beyond the normal game rules.");

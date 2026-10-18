@@ -398,6 +398,7 @@ template class ConfigImpl<MenuScaling>;
 template class ConfigImpl<Resampler>;
 template class ConfigImpl<AlwaysGreatspinMode>;
 template class ConfigImpl<MagicArmorMode>;
+template class ConfigImpl<LightSwordMode>;
 template class ConfigImpl<ui::ControlLayout>;
 
 void Register(ConfigVarBase& configVar) {

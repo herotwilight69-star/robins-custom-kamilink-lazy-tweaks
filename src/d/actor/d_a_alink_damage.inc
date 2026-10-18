@@ -164,12 +164,16 @@ f32 daAlink_c::damageMagnification(BOOL i_checkZoraMag, int param_1) {
     base_mag *= dusk::getSettings().game.damageMultiplier;
     #endif
 
-    if (checkWolf() && !checkCargoCarry() && param_1 == 0) {
+    if (checkWolf() && !checkCargoCarry() && param_1 == 0 && !dusk::getSettings().game.sturdierWolfLink) {
         return 2.0f * base_mag;
     }
 
-    if (checkZoraWearAbility() && i_checkZoraMag) {
+    if (checkZoraWearAbility() && i_checkZoraMag && !dusk::getSettings().game.insulatedZoraArmor) {
         return 10.0f * base_mag;
+    }
+
+    if (dusk::getSettings().game.progressiveDefense && dComIfGs_isEventBit(0xD04)) {
+        return 2.0f + base_mag;
     }
 
     return base_mag;
@@ -522,6 +526,21 @@ BOOL daAlink_c::checkDamageAction() {
         return checkWolfBarrierHitReverse();
     }
 
+    if (mProcID == PROC_SIDESTEP || mProcID == PROC_FRONT_ROLL || mProcID == PROC_SIDE_ROLL
+        || mProcID == PROC_BACK_JUMP || mProcID == PROC_WOLF_SIDESTEP || mProcID == PROC_WOLF_BACKJUMP) {
+        if (checkNowWolf) {
+            mDodgeTimer = 15;
+        }
+        else {
+            mDodgeTimer = 10;
+        }
+        if (mDodgeTimer != 0) {
+            mCcStts.ClrTg();
+            mCcStts.ClrAt();
+            return checkWolfBarrierHitReverse();
+        }
+    }
+
     dCcD_GObjInf* var_r29 = NULL;
     for (int i = 0; i < 3; i++) {
         if (mTgCyls[i].ChkTgHit() && (field_0x2fb8 == 0 || (1 << i) == 0)) {
@@ -652,6 +671,36 @@ BOOL daAlink_c::checkDamageAction() {
     
         if (var_r29->ChkTgShieldHit()) {
             setGuardSe(var_r29);
+            if (dusk::getSettings().game.shieldUsesMeter && dusk::getSettings().game.enableSkillMeter) {
+                mSkillCooldown += 150;
+            }
+
+            if (mParryTimer > 0 && !(mProcID == PROC_SIDESTEP || mProcID == PROC_FRONT_ROLL || mProcID == PROC_SIDE_ROLL
+                || mProcID == PROC_BACK_JUMP)) {
+                if (mIsNormalParry || mIsCombinedParry) {
+                    Z2GetSeMgr()->setMultiTriggerSE(Z2SE_MIDNA_JUMP, NULL, -1);
+                }
+                dComIfGp_getVibration().StartShock(VIBMODE_S_POWER4, 1, cXyz(0.0f, 1.0f, 0.0f));
+
+                if (mIsNormalParry || (mIsDeflect && dusk::getSettings().game.alternateParry)) {
+                    mSwordUpTimer = 60;
+                    mDodgeTimer = 20;
+                    mSkillCooldown = 0;
+                }
+                if (mIsDeflect) {
+                    setUpperAnimeBase(dRes_ID_ALANM_BCK_ATGPUSHRE_e);
+                    Z2GetSeMgr()->setMultiTriggerSE(Z2SE_TITLE_ENTER, NULL, -1);
+                    mIsDeflectAnm = true;
+                    mWaitThisLong = 15;
+                    mSkillCooldown = 0;
+                    mDodgeTimer = 10;
+                }
+                if (mIsCombinedParry) {
+                    mRiposteTimer = 30;
+                    mDodgeTimer = 20;
+                }
+                return checkWolfBarrierHitReverse();
+            }
 
             if (checkHugeAttack(at_spl)) {
                 dComIfGp_getVibration().StartShock(VIBMODE_S_POWER5, 1, cXyz(0.0f, 1.0f, 0.0f));
@@ -669,7 +718,8 @@ BOOL daAlink_c::checkDamageAction() {
             }
 
             if ((mProcID != PROC_GUARD_ATTACK || (tghit_ac_name != fpcNm_E_TK_BALL_e && tghit_ac_name != fpcNm_KN_BULLET_e)) && !checkModeFlg(0x4000000)) {
-                if (at_spl == 10 || at_spl == 11 || at_spl == 9) {
+                if (at_spl == 10 || at_spl == 11 || at_spl == 9 || mSkillCooldown >= 300) {
+                    offNoResetFlg2(FLG2_UNK_8000000);
                     return procGuardBreakInit();
                 }
 
@@ -691,6 +741,10 @@ BOOL daAlink_c::checkDamageAction() {
                     }
                 }
             }
+        } else if (mDodgeTimer != 0) {
+            mCcStts.ClrTg();
+            mCcStts.ClrAt();
+            return checkWolfBarrierHitReverse();
         } else {
             int dmg = mCcStts.GetDmg();
             if (var_r29->ChkTgHit() && tghit_gobj != NULL && tghit_gobj->GetAtType() == AT_TYPE_BOMB) {

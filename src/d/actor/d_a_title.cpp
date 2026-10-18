@@ -11,6 +11,7 @@
 #include "d/d_pane_class_alpha.h"
 #include "d/d_s_logo.h"
 #include "d/d_s_play.h"
+#include "dusk/game_mode.hpp"
 #include "f_op/f_op_msg_mng.h"
 #include "f_op/f_op_overlap_mng.h"
 #include "f_op/f_op_scene_mng.h"
@@ -19,6 +20,8 @@
 #include "m_Do/m_Do_graphic.h"
 
 #if TARGET_PC
+#include "Z2AudioLib/Z2SeqMgr.h"
+#include "d/d_camera.h"
 #include "dusk/game_clock.h"
 #include "dusk/interp/frame_interpolation.h"
 #include "dusk/interp/user_interface.h"
@@ -58,6 +61,48 @@ using namespace dusk::version;
 static char const l_arcName[] = "TitlePal";
 #else
 static char const l_arcName[] = "Title";
+#endif
+
+#if TARGET_PC
+static const u32 l_titleBgmID = 0x2000028;
+
+// Fixed title shot, captured with TITLE_CAM_CAPTURE (d_s_play.h)
+static const cXyz l_titleCamCenter(-24146.77f, 171.92f, -22204.51f);
+static const cXyz l_titleCamEye(-24131.27f, 160.66f, -22198.75f);
+static const f32 l_titleCamFovy = 60.0f;
+
+static bool l_titleBgmStarted;
+
+static void titleScene_proc() {
+    if (!l_titleBgmStarted) {
+        Z2GetSoundMgr()->getStreamMgr()->stop();
+        Z2GetSeqMgr()->bgmStreamPrepare(l_titleBgmID);
+        Z2GetSeqMgr()->bgmStreamPlay();
+        if (Z2GetSeqMgr()->mStreamBgmHandle) {
+            l_titleBgmStarted = true;
+        }
+    }
+
+    dCamera_c* camera = dCam_getBody();
+    if (camera == NULL) {
+        return;
+    }
+
+#if TITLE_CAM_CAPTURE
+    static int l_logTimer;
+    if (++l_logTimer >= 30) {
+        l_logTimer = 0;
+        cXyz center = camera->Center();
+        cXyz eye = camera->Eye();
+        OSReport("[title cam] center(%.2ff, %.2ff, %.2ff) eye(%.2ff, %.2ff, %.2ff) fovy %.2ff\n",
+                 center.x, center.y, center.z, eye.x, eye.y, eye.z, camera->Fovy());
+    }
+#else
+    // Re-applied every frame so nothing that starts the camera later can move it
+    camera->Reset(l_titleCamCenter, l_titleCamEye, l_titleCamFovy, 0);
+    camera->Stop();
+#endif
+}
 #endif
 
 daTit_HIO_c::daTit_HIO_c() {
@@ -154,6 +199,7 @@ int daTitle_c::create() {
     g_daTitHIO.id = mDoHIO_CREATE_CHILD("タイトルロゴ", &g_daTitHIO);
 
     IF_DUSK(draw_interp_frame = true);
+    IF_DUSK(l_titleBgmStarted = false);
 
     return phase_state;
 }
@@ -166,6 +212,12 @@ int daTitle_c::createHeapCallBack(fopAc_ac_c* actor) {
 int daTitle_c::Execute() {
 #if PLATFORM_WII || PLATFORM_SHIELD
     mDoGph_gInf_c::resetDimming();
+#endif
+
+#if TARGET_PC
+    if (!dusk::gamemode::getGameModeManager().isCurrentGameMode("bossrush")) {
+        titleScene_proc();
+    }
 #endif
 
     if (fopOvlpM_IsPeek()) {

@@ -1653,6 +1653,7 @@ public:
     bool checkReadyItem();
     BOOL checkItemAction();
     BOOL checkRAction();
+    BOOL checkDodgeInput();
     BOOL checkMoveDoAction();
     BOOL checkSideRollAction(int);
     BOOL checkNoUpperAnime() const;
@@ -1995,6 +1996,10 @@ public:
     BOOL checkGuardAccept();
     void setUpperGuardAnime(f32);
     void setShieldGuard();
+    // Shield crouch handling
+    BOOL checkShieldCrouch();
+    void setShieldCrouch();
+    //
     void setGuardSe(dCcD_GObjInf* i_objinf);
     void setSmallGuard(dCcD_GObjInf* i_objinf);
     int procGuardSlipInit(int i_atSpl, dCcD_GObjInf* i_objinf);
@@ -2770,6 +2775,9 @@ public:
     int procDemoBoomerangCatchInit();
     int procDemoBoomerangCatch();
     int procCoDeadInit(int);
+#if TARGET_PC
+    void loseRupees();
+#endif
     int procCoDead();
     int procCoLookAroundInit();
     int procCoLookAround();
@@ -4065,7 +4073,10 @@ public:
     /* 0x02180 */ daAlink_matAnm_c* field_0x2180[2];
     /* 0x02188 */ dEyeHL_c mEyeHL1;
     /* 0x0219C */ dEyeHL_c mEyeHL2;
-    /* 0x021B0 */ daPy_anmHeap_c mItemHeap[2];
+    // X and Y keep their upstream addresses; the Z heap is at the end of the class, since
+    // widening here would move every one of the several hundred members that follow, all of
+    // which prebuilt code mods read at their upstream offsets. Access via itemHeap(i).
+    /* 0x021B0 */ daPy_anmHeap_c mItemHeap_[2];
     /* 0x021D8 */ daPy_anmHeap_c mAnmHeap9;
     /* 0x021EC */ daAlinkHIO_c* mpHIO;
     /* 0x021F0 */ daAlink_blur_c m_swordBlur;
@@ -4561,8 +4572,28 @@ public:
     bool checkAimInputContext();
 
     bool mIsRollstab = false;
+
+    daPy_anmHeap_c mItemHeapZ_;  // third item heap; see mItemHeap_ above
+    s16 mSkillCooldown = 0;
+    s16 mWaitThisLong = 0;
+    s16 mRiposteTimer = 0;
+    bool mIsNormalParry = false;
+    bool mIsDeflect = false;
+    bool mIsDeflectAnm = false;
+    bool mIsCombinedParry = false;
+    bool mIsTargetedRoll = false;
+    bool mIsBackRoll = false;
+    bool mIsSideRoll = false;
+    bool mIsCrouching = false;
+    bool mIsShielding = false;
+    bool mIsWolfDodge = false;
+    bool mCanWolfDodge = false;
+    s16 mGuardBreakTimer = 0;
+
+public:
+    daPy_anmHeap_c& itemHeap(int i) { return i < 2 ? mItemHeap_[i] : mItemHeapZ_; }
 #endif
-};  // Size: 0x385C
+};  // Size: 0x385C plus appended Z storage
 
 class daAlinkHIO_data_c : public JORReflexible {
 public:

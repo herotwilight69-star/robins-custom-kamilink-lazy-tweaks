@@ -44,8 +44,10 @@ static fopAc_ac_c* daAlink_searchNightStalker(fopAc_ac_c* i_actor, void* i_data)
 
 void daAlink_c::checkLightSwordMtrl() {
     if (checkLightMasterSwordEquip()) {
-        if (dStage_stagInfo_GetSaveTbl(dComIfGp_getStage()->getStagInfo()) == dStage_SaveTbl_LV8 ||
+#if TARGET_PC
+        if (dusk::getSettings().game.alwaysLightSword.getValue() == dusk::LightSwordMode::INCLUDE_DAMAGE || dStage_stagInfo_GetSaveTbl(dComIfGp_getStage()->getStagInfo()) == dStage_SaveTbl_LV8 ||
             fopAcIt_Judge((fopAcIt_JudgeFunc)daAlink_searchNightStalker, NULL))
+#endif
         {
             onNoResetFlg3(FLG3_UNK_100000);
             return;
@@ -166,7 +168,9 @@ BOOL daAlink_c::checkCutTypeNoBlur() const {
 
 bool daAlink_c::checkCutTurnInput() const {
     #if TARGET_PC
-    if (mDoCPd_c::getHoldR(PAD_1) && dusk::getSettings().game.easyQuickSpin) {
+    int direction = getDirectionFromCurrentAngle();
+    if (mDoCPd_c::getHoldR(PAD_1) && (direction == DIR_LEFT || direction == DIR_RIGHT)
+        && dusk::getSettings().game.easyQuickSpin) {
         return true;
     }
     #endif
@@ -365,7 +369,10 @@ BOOL daAlink_c::checkAtShieldHit(dCcD_GObjInf& i_gobj) {
 
 BOOL daAlink_c::checkCutReverseAt(dCcD_GObjInf* i_gobj) {
     fopAc_ac_c* hit_ac = i_gobj->GetAtHitAc();
-    if (checkAtShieldHit(*i_gobj)) {
+    // get enemy reference
+    fopAc_ac_c* enemy = mTargetedActor;
+    if (checkAtShieldHit(*i_gobj) && enemy != NULL && (fopAcM_GetName(enemy) == fpcNm_B_TN_e
+        || fopAcM_GetName(enemy) == fpcNm_E_DN_e)) {
         return TRUE;
     } else {
         return FALSE;
@@ -579,6 +586,8 @@ void daAlink_c::setSwordComboVoice() {
 }
 
 bool daAlink_c::checkCutTurnInputTrigger() {
+    if (dusk::getActionBindTrig(dusk::ActionBinds::ONE_BUTTON_SPIN, PAD_1))
+        return true;
     return swordSwingTrigger() && checkCutTurnInput();
 }
 
@@ -767,11 +776,11 @@ BOOL daAlink_c::checkCutCancelNextMode(int param_0) {
 BOOL daAlink_c::checkDoCutAction() {
     fopAc_ac_c* enemy = mTargetedActor;
 
-    if (doButton() && (dComIfGs_isEventBit(dSv_event_flag_c::F_0343) || checkNoResetFlg3(FLG3_TRANING_CUT_LARGE_JUMP))) {
+    if ((doButton() && mSkillCooldown <= 150) && (dComIfGs_isEventBit(dSv_event_flag_c::F_0343) || checkNoResetFlg3(FLG3_TRANING_CUT_LARGE_JUMP))) {
         return procCutLargeJumpChargeInit();
     } else if (checkDownAttackState()) {
         return procCutDownInit();
-    } else if (checkCutHeadState()) {
+    } else if (checkCutHeadState() && mSkillCooldown <= 150) {
         return procCutHeadInit();
     } else {
         return procCutJumpInit(FALSE);
@@ -809,6 +818,15 @@ BOOL daAlink_c::checkDownAttackState() {
                 || (checkWolf()
                     && (fopAcM_GetName(mTargetedActor) == fpcNm_E_PO_e
                         || fopAcM_GetName(mTargetedActor) == fpcNm_E_HP_e
+                        // Extend down attack prompt as wolf to more enemies
+                        || fopAcM_GetName(mTargetedActor) == fpcNm_E_RD_e
+                        || fopAcM_GetName(mTargetedActor) == fpcNm_E_RDY_e
+                        || fopAcM_GetName(mTargetedActor) == fpcNm_E_OC_e
+                        || fopAcM_GetName(mTargetedActor) == fpcNm_E_ST_e
+                        || fopAcM_GetName(mTargetedActor) == fpcNm_E_DN_e
+                        || fopAcM_GetName(mTargetedActor) == fpcNm_E_MF_e
+                        || fopAcM_GetName(mTargetedActor) == fpcNm_E_KG_e
+                        || fopAcM_GetName(mTargetedActor) == fpcNm_E_YR_e
                         )
                     && enemy->getDownPos().abs2(current.pos) < SQUARE(800.0f)
                     )
@@ -828,8 +846,14 @@ BOOL daAlink_c::checkCutLargeTurnState() const {
     if (alwaysGreatspinMode == dusk::AlwaysGreatspinMode::ALWAYS) {
         return TRUE;
     }
-    if (alwaysGreatspinMode == dusk::AlwaysGreatspinMode::AFTER_SKILL && 
+    if (alwaysGreatspinMode == dusk::AlwaysGreatspinMode::AFTER_SKILL &&
         (dComIfGs_isEventBit(dSv_event_flag_c::F_0344) || checkNoResetFlg3(FLG3_TRANING_CUT_LARGE_TURN))) {
+        return TRUE;
+    }
+
+    if (dusk::getSettings().game.meterSpin && mSkillCooldown <= 150
+        && dComIfGs_getLife() >= dComIfGs_getMaxLifeGauge() / 2
+        && (dComIfGs_isEventBit(dSv_event_flag_c::F_0344) || checkNoResetFlg3(FLG3_TRANING_CUT_LARGE_TURN))) {
         return TRUE;
     }
 #endif
@@ -1411,6 +1435,9 @@ int daAlink_c::procCutFinishJumpUpInit() {
     dComIfGp_setPlayerStatus0(0, 0x8000);
     setCutWaterDropEffect();
     field_0x2fd0 = 1;
+    if (dusk::getSettings().game.enableSkillMeter) {
+        mSkillCooldown += 150;
+    }
     return 1;
 }
 
@@ -1777,6 +1804,12 @@ int daAlink_c::procCutTurnInit(int param_0, int param_1) {
         } else {
             setCutType(CUT_TYPE_LARGE_TURN_LEFT);
         }
+
+        if (dusk::getSettings().game.meterSpin && dComIfGs_getLife() >= dComIfGs_getMaxLifeGauge() / 2
+            && dComIfGs_getLife() != dComIfGs_getMaxLifeGauge()) {
+            mSkillCooldown += 150;
+        }
+
     } else {
         atp = 3;
         field_0x32cc = Z2SE_AL_KAITENGIRI;
@@ -1954,7 +1987,7 @@ int daAlink_c::procCutTurnMove() {
     if (mProcVar2.field_0x300c != 0) {
         if (checkDownAttackState() && !var_r4) {
             setDoStatusEmphasys(BUTTON_STATUS_FINISH);
-        } else if (checkCutHeadState() && !var_r4) {
+        } else if (checkCutHeadState() && !var_r4 && mSkillCooldown <= 150) {
             setDoStatusEmphasys(BUTTON_STATUS_HELM_SPLITTER);
         } else {
             setDoStatus(BUTTON_STATUS_UNK_134);
@@ -2284,6 +2317,10 @@ int daAlink_c::procCutHeadInit() {
                     mpHIO->mCut.mCutHead.m.mSwordRadius);
     setCutType(CUT_TYPE_HEAD_JUMP);
 
+    if (dusk::getSettings().game.enableSkillMeter) {
+        mSkillCooldown += 150;
+    }
+
     return 1;
 }
 
@@ -2299,6 +2336,7 @@ int daAlink_c::procCutHead() {
             mProcVar3.field_0x300e = 1;
             setCutWaterDropEffect();
             setSwordVoiceSe(Z2SE_AL_V_KABUTO_ATK);
+            mDodgeTimer = 10;
         }
     } else {
         daPy_frameCtrl_c* frameCtrl = mUnderFrameCtrl;
@@ -2369,9 +2407,9 @@ int daAlink_c::procCutLargeJumpCharge() {
 
     if (checkDownAttackState()) {
         setDoStatusEmphasys(BUTTON_STATUS_FINISH);
-    } else if (checkCutHeadState()) {
+    } else if (checkCutHeadState() && mSkillCooldown <= 150) {
         setDoStatusEmphasys(BUTTON_STATUS_HELM_SPLITTER);
-    } else {
+    } else if (mSkillCooldown <= 150) {
         setDoStatus(BUTTON_STATUS_UNK_134);
     }
 
@@ -2408,6 +2446,10 @@ int daAlink_c::procCutLargeJumpInit() {
     mProcVar3.field_0x300e = 4;
     mProcVar4.field_0x3010 = 0;
     field_0x3198 = 2;
+
+    if (dusk::getSettings().game.enableSkillMeter) {
+        mSkillCooldown += 150;
+    }
     return 1;
 }
 

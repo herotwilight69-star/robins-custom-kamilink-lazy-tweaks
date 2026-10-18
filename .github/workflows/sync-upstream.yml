@@ -19,23 +19,23 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Merge upstream main
+      - name: Merge Lazy Tweaks branch
         id: merge
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git remote add upstream https://github.com/TwilitRealm/dusklight.git
-          git fetch --no-tags upstream main
-          upstream_sha="$(git rev-parse upstream/main)"
-          if git merge-base --is-ancestor upstream/main origin/main; then
+          git remote add upstream https://github.com/kamilink7/dusklight.git
+          git fetch --no-tags upstream lazytweaks
+          upstream_sha="$(git rev-parse upstream/lazytweaks)"
+          if git merge-base --is-ancestor upstream/lazytweaks origin/main; then
             echo "needed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          branch="sync/upstream-${upstream_sha:0:12}"
+          branch="sync/lazytweaks-${upstream_sha:0:12}"
           git switch --create "$branch" origin/main
-          git merge --no-edit upstream/main
+          git merge --no-edit upstream/lazytweaks
           git push origin "HEAD:refs/heads/${branch}"
           echo "needed=true" >> "$GITHUB_OUTPUT"
           echo "branch=${branch}" >> "$GITHUB_OUTPUT"
@@ -54,8 +54,8 @@ jobs:
               --repo "$GITHUB_REPOSITORY" \
               --base main \
               --head "$SYNC_BRANCH" \
-              --title "Sync upstream Dusklight ${UPSTREAM_SHA:0:12}" \
-              --body "This pull request merges the latest \`TwilitRealm/dusklight\` main branch into Robin's custom build. Review the changes and resolve any custom-service conflicts before merging."
+              --title "Sync Kamilink Lazy Tweaks ${UPSTREAM_SHA:0:12}" \
+              --body "This pull request merges the latest \`kamilink7/dusklight\` \`lazytweaks\` branch into Robin's custom build. Review the changes and resolve any custom-service conflicts before merging."
           else
             echo "An upstream sync pull request is already open: #${existing}"
           fi
