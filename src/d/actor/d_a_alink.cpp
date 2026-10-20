@@ -50,6 +50,7 @@
 #include "d/actor/d_a_canoe.h"
 #include "d/actor/d_a_ni.h"
 #include "d/d_s_play.h"
+#include "dusk/game_mode.hpp"
 
 #if TARGET_PC
 #include "dusk/action_bindings.h"
@@ -9391,6 +9392,13 @@ BOOL daAlink_c::midnaTalkTrigger() const {
         return dusk::getActionBindTrig(dusk::ActionBinds::CALL_MIDNA, 0);
     }
 #endif
+    // Reserve vanilla A+Z for the Z-slot item during Boss Rush.
+    if (dusk::gamemode::getGameModeManager().isCurrentGameMode("bossrush")
+        && dComIfGp_getSelectItem(2) != dItemNo_NONE_e)
+    {
+        return false;
+    }
+
     // return mItemTrigger & BTN_Z;
     return mDoCPd_c::getHoldA(PAD_1) && mDoCPd_c::getHoldZ(PAD_1);
 }
